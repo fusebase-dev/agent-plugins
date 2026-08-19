@@ -4,5 +4,12 @@
   "owner": {
     "name": "FuseBase"
   },
-  "plugins": []
+  "plugins": [
+    {
+      "name": "fusebase-apps",
+      "source": "./plugins/fusebase-apps",
+      "description": "Create FuseBase apps by asking your agent. Installs and authenticates the fusebase CLI when it is first needed.",
+      "category": "Developer Tools"
+    }
+  ]
 }

@@ -3,7 +3,8 @@
 The `fusebase-apps` plugin lets you create FuseBase apps by asking your coding agent, without
 opening a terminal. It works with Claude Code and Codex.
 
-> **Status**: not published yet. The catalogs are in place, the plugin and its skills are not.
+> **Status**: not published yet. The plugin and its skills are in place, but nothing in them has
+> been run end to end, because the CLI changes they depend on do not exist yet.
 
 ## Install
 
