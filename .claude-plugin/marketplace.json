@@ -1,0 +1,8 @@
+{
+  "name": "fusebase",
+  "description": "FuseBase plugins for coding agents",
+  "owner": {
+    "name": "FuseBase"
+  },
+  "plugins": []
+}
