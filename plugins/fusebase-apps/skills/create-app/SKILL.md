@@ -1,6 +1,6 @@
 ---
 name: create-app
-description: Use when the user wants to build a **new** application. Helps to initialize a new web app using FuseBase Apps functionality using `fusebase` CLI. Required only when creating a new app, therefore do not load this skill when working in already initialized applications
+description: Use when the user wants to build a **new** application (even if user doesn't say directly that he wants Fusebase App). Helps to initialize a new web app using FuseBase Apps functionality using `fusebase` CLI. Required only when creating a new app, therefore do not load this skill when working in already initialized applications
 ---
 
 # Creating FuseBase apps
