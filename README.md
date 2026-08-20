@@ -3,9 +3,6 @@
 The `fusebase-apps` plugin lets you create FuseBase apps by asking your coding agent, without
 opening a terminal. It works with Claude Code and Codex.
 
-> **Status**: not published yet. The plugin and its skills are in place, but nothing in them has
-> been run end to end, because the CLI changes they depend on do not exist yet.
-
 ## Install
 
 In Claude Code:
@@ -48,9 +45,12 @@ actually ask for an app.
 
 The first time `install-cli` runs:
 
-- **macOS and Linux**: installs the `fusebase` binary to `~/.local/bin` and adds that directory to
-  your `PATH` via your shell rc file. No `sudo`. Node is required, and the skill will help you
-  install it if it is missing.
+- **macOS and Linux**: installs the `fusebase` binary to `~/.local/bin`, adding that directory to
+  your `PATH` via your shell rc file if it is not there already. No `sudo`. Node is required, and
+  the skill will help you install it if it is missing.
+- **An older install at `/usr/local/bin/fusebase`** is removed first, because it would shadow the
+  new one. That path needs root, so the installer stops and prints a single `sudo rm` line for you
+  to run yourself.
 - **Windows**: downloads and starts the signed FuseBase CLI installer. Windows shows the usual
   elevation prompt and you click Yes. The installer handles Node itself. Restart your agent
   afterwards so `fusebase` resolves.
@@ -62,7 +62,7 @@ Linux arm64 is not supported.
 
 Skills change as they are tuned, so keep the marketplace syncing. Codex does this by default.
 Claude Code exposes a *Sync automatically* toggle when you add a marketplace, and `install-cli`
-will tell you if it looks disabled.
+asks you to confirm it is on.
 
 ## Security
 
