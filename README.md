@@ -5,25 +5,58 @@ opening a terminal. It works with Claude Code and Codex.
 
 ## Install
 
-In Claude Code:
+Three ways to install. The first two need your agent's CLI on your `PATH`. The third does not, so
+it works everywhere.
+
+### Ask your agent
+
+Paste this into Claude Code or Codex:
+
+```
+Install the fusebase-dev/agent-plugins marketplace and the fusebase-apps plugin from it.
+```
+
+The agent runs its own CLI to do this. That only works if the CLI is on your `PATH`, which it
+often is not when you installed the desktop app alone. If the agent reports that its command was
+not found, skip to [installing from the app itself](#install-from-the-app-itself).
+
+### Run the commands yourself
+
+These are the same commands the agent would run, so if asking the agent failed because the CLI was
+not found, these will fail the same way. Use the next method instead.
+
+For Claude Code:
 
 ```
 claude plugin marketplace add fusebase-dev/agent-plugins
 claude plugin install fusebase-apps@fusebase
 ```
 
-In Codex:
+For Codex:
 
 ```
 codex plugin marketplace add fusebase-dev/agent-plugins
 codex plugin add fusebase-apps@fusebase
 ```
 
-You can paste either pair into the agent and let it run them for you.
+### Install from the app itself
 
-If your agent's CLI is not on `PATH`, which is common when you installed only the desktop app, add
-the marketplace through the plugin manager instead. In Claude Code: **+ → Plugins → Add plugin → Add
-marketplace → Add from a repository**, then enter `fusebase-dev/agent-plugins`.
+Both Claude Code and Codex can add the marketplace from their own interface. This needs no CLI, so
+it works when the other two methods do not.
+
+**Claude Code desktop**
+
+1. Click **+** next to the prompt box and pick **Add plugins...**.
+2. In the **Plugins** directory, click **+** (*Add marketplace*) at the top right.
+3. Choose **Add from a repository**, enter `fusebase-dev/agent-plugins`, and press **Sync**.
+4. Open the **Code** tab, select the `fusebase` marketplace, and install **Fusebase apps**.
+
+**Codex**
+
+1. Open **Settings -> Plugins**.
+2. Click **Add -> Add a marketplace**.
+3. Enter `fusebase-dev/agent-plugins` as the source and press **Add marketplace**.
+4. Find **FuseBase Apps** under the **Personal** tab and press **Install**.
 
 Claude Code needs `/reload-plugins` or a restart before a plugin installed mid-session becomes
 active.
