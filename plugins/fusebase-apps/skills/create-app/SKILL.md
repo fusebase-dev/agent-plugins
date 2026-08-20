@@ -8,7 +8,9 @@ description: Use when the user wants to build a **new** application. Helps to in
 FuseBase apps are created with the `fusebase` CLI. Once a product is initialised, the generated
 project has its own `AGENTS.md` and skills that cover everything after this point.
 
-**Note**: This flow explains how to create a web application that will be hosted on FuseBase infrastructure and linked to the user's FuseBase organization. Before proceeding to initialization, ask the user if it's exactly what they needs.
+**Note**: This flow explains how to create a web application that will be hosted on FuseBase infrastructure and linked to the user's FuseBase organization. Before proceeding to initialization, ask the user if it's exactly what they need.
+
+**Note**: This flow ends at the newly created project, not at a working app. `init` writes an `.mcp.json` that the agent only reads at startup, so the session has to be restarted before any of the work described in the generated `AGENTS.md` can begin. Tell the user this before you initialize, so the stop is expected.
 
 
 ## Before you start
@@ -41,7 +43,15 @@ Run `fusebase update` to check the CLI is installed and current.
     
     If the directory is not empty and user approved ignoring it, use the `--force-dirty` flag to ignore the contents of the dir.
 
-4. Read the generated `AGENTS.md` and follow it from there.
+4. Stop here and hand back to the user. Tell them to:
+    - Restart the agent in the newly created project directory
+    - Approve the FuseBase MCP servers when prompted
+    - Ask you to continue once it is back
+
+    Do not start on the app itself in this session. The generated `AGENTS.md` requires the MCP
+    servers for all data and backend work, and they are not connected until the restart.
+
+5. After the restart, read the generated `AGENTS.md` and follow it from there.
 
 `init` never prompts you: without a terminal it exits naming the flag it needs. If it asks for something, pass the flag it names and run it again.
 
