@@ -18,23 +18,24 @@ Run `fusebase update` to check the CLI is installed and current.
 
 ## Creating a product
 
-1. Decide which organisation to use. If the user belongs to more than one, list them and ask. The
-   CLI cannot prompt in this mode.
+1. Decide which organisation to use. Run `fusebase orgs list --json`. With one organisation, use
+   it. With several, show the titles and ask which one, then take its `id`.
 
-2. Create a new **empty** directory for the product and change into it. `init` refuses to run in a
-   directory that already has files in it.
+2. Create a new **empty** directory for the product and change into it. `init` stops in a directory
+   that already has visible files in it.
 
 3. Initialise:
 
    ```
-   fusebase init --non-interactive --name "<product name>" --org <orgId> \
-     --coding-agent claude_code --model <your model id>
+   fusebase init --name "<product name>" --org <orgId> --ide claude-code
    ```
 
-   Use `--coding-agent codex` under Codex. Set `--model` to the model you are running as, and drop
-   the flag if you do not know it rather than guessing.
+   Use `--ide codex` under Codex.
 
 4. Read the generated `AGENTS.md` and follow it from there.
+
+`init` never prompts you: without a terminal it exits naming the flag it needs. If it asks for
+something, pass the flag it names and run it again.
 
 ## Anything else
 

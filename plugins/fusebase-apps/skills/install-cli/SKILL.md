@@ -9,26 +9,26 @@ Work through these steps in order and tell the user what you are doing as you go
 
 Linux arm64 has no build. If the user is on it, stop and say so.
 
+Run the installer as given. If it fails, stop and report what it printed. Do not download the
+binary yourself or place it by hand: the installer owns where the CLI lives and how it updates, and
+working around it hides the failure and leaves a binary `fusebase update` will not replace.
+
 ## 1. Install or update
 
 **macOS and Linux**
-
-If `fusebase` resolves, run `fusebase update`. Otherwise install it:
 
 ```
 curl -sSL https://thefusebase.com/fusebase-cli/install-fusebase.sh | FUSEBASE_AGENT=1 sh
 ```
 
-The installer writes to `$HOME/.local/bin` and adds that directory to `PATH` through the shell rc
-file, so it needs no elevation. `FUSEBASE_AGENT=1` stops it opening a browser guide.
+This handles both cases. It installs to `$HOME/.local/bin` without elevation, adds that directory
+to `PATH` in the shell rc file, and updates in place when the CLI is already there.
 
-If `fusebase update` fails on permissions (`EPERM`, `EACCES`, `Failed to replace binary`), the
-machine has an older root-owned install that cannot replace itself. Ask the user to run this once in
-a terminal, then install as above:
+If it exits reporting a previous install it cannot remove, relay its message. The user runs the one
+`sudo rm` line it prints, then you run the installer again.
 
-```
-sudo rm /usr/local/bin/fusebase
-```
+If `$HOME/.local/bin` was not already on `PATH`, `fusebase` will not resolve until the shell
+restarts. Use `~/.local/bin/fusebase` for the rest of this session.
 
 **Windows**
 
@@ -36,16 +36,14 @@ sudo rm /usr/local/bin/fusebase
 irm https://thefusebase.com/fusebase-cli/install-fusebase.ps1 | iex
 ```
 
-This downloads the signed installer and starts it. Windows raises the elevation prompt and the user
-clicks Yes. The installer bundles Node, so it can run for several minutes; the script starts it and
-polls rather than blocking.
+Windows raises the elevation prompt and the user clicks Yes. The installer bundles Node, so a first
+install takes a while. The script waits 90 seconds and then hands back rather than blocking.
 
-Afterwards the CLI is on the machine `PATH`, which the running session cannot see. For the rest of
-this session call it by full path:
+Exit code 2 means it is still installing, not that it failed. Poll until
+`%PROGRAMFILES%\FuseBase CLI\fusebase.exe` exists, then continue.
 
-```
-%PROGRAMFILES%\FuseBase CLI\fusebase.exe
-```
+Use that full path for the rest of this session, since the machine `PATH` change is invisible to
+the running session.
 
 ## 2. Check Node (macOS and Linux only)
 
@@ -55,9 +53,13 @@ itself.
 
 ## 3. Authenticate
 
+Check first: `fusebase orgs list` fails when nobody is logged in. If it lists organisations, skip
+this step.
+
 `fusebase auth` opens a browser and waits with no timeout, so it will outlive your command timeout.
-Start it in the background, tell the user to finish logging in in the browser window that opened,
-then poll `fusebase auth --status` until it reports a logged-in account.
+Start it in the background and tell the user to finish logging in in the browser window that
+opened. It exits 0 once the login lands, so wait for the process to exit rather than polling
+anything.
 
 ## 4. Check the marketplace stays in sync
 
