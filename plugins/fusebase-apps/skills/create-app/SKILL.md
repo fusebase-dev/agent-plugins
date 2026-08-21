@@ -43,15 +43,17 @@ Run `fusebase update` to check the CLI is installed and current.
     
     If the directory is not empty and user approved ignoring it, use the `--force-dirty` flag to ignore the contents of the dir.
 
-4. Stop here and hand back to the user. Tell them to:
-    - Restart the agent in the newly created project directory
+4. If the app was created outside the directory you are running in, and you have a tool that changes your working directory, use it to move to the project directory. That's needed because MCP config is read only from the directory the agent is rooted in.
+
+5. Stop here and hand back to the user. Tell them to:
+    - Restart the agent, in the project directory if you could not move there
     - Approve the FuseBase MCP servers when prompted
     - Ask you to continue once it is back
 
     Do not start on the app itself in this session. The generated `AGENTS.md` requires the MCP
     servers for all data and backend work, and they are not connected until the restart.
 
-5. After the restart, read the generated `AGENTS.md` and follow it from there.
+6. After the restart, read the generated `AGENTS.md` and follow it from there.
 
 `init` never prompts you: without a terminal it exits naming the flag it needs. If it asks for something, pass the flag it names and run it again.
 
