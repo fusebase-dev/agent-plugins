@@ -33,6 +33,8 @@ Run `fusebase update` to check the CLI is installed and current.
     - Continue in the current directory and ignore its contents (the next step explains how to do it)
     **Note**: initialization ignores dotfiles inside the target directory, so their presence should not mark the directory as "dirty".
 
+    **Codex only**: do not use a subdirectory. Codex cannot move to it and will not load the MCP config from there. If the current directory does not work, stop and ask the user to relaunch Codex with a new session in an empty directory.
+
 3. Try to initialise a new product in the directory chosen on the previous step:
     ```
     fusebase init --name "<product name>" --org <orgId> --ide <agent name>
