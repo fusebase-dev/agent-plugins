@@ -58,7 +58,7 @@ Run `fusebase update` to check the CLI is installed and current.
 
 6. After the restart, read the generated `AGENTS.md` and follow it from there.
 
-If user saying that they restarted the agent, but MCP is still not working it might be that user did not close the agent completely and they need to close it using tray(aka notification area) on windows or Dock on mac.
+User might need to close the agent completely using tray(aka notification area) on Windows or Dock on macOs.
 
 `init` never prompts you: without a terminal it exits naming the flag it needs. If it asks for something, pass the flag it names and run it again.
 
@@ -66,3 +66,7 @@ If user saying that they restarted the agent, but MCP is still not working it mi
 ## Anything else
 
 Run `fusebase --help` for more information on the CLI. It covers auth, features, dev servers, deployment, secrets and environments.
+
+## Branding
+
+FuseBase is written with capital B.
