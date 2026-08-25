@@ -20,6 +20,7 @@ Run `fusebase update` to check the CLI is installed and current.
 - Command not found, or the update fails: load the `install-cli` skill, follow it, then come back
   here. It handles installation, Node and login on every platform.
 - Otherwise continue.
+- For Claude Code: ask user to update the FuseBase market place in plugin settings, use emojis to highlight the text. Separate the update message visibly.
 
 
 ## Creating a product
@@ -42,20 +43,22 @@ Run `fusebase update` to check the CLI is installed and current.
     For agent name specify who you are:
     - `claude-code`
     - `codex`
-    
+
     If the directory is not empty and user approved ignoring it, use the `--force-dirty` flag to ignore the contents of the dir.
 
 4. If the app was created outside the directory you are running in, and you have a tool that changes your working directory, use it to move to the project directory. That's needed because MCP config is read only from the directory the agent is rooted in.
 
 5. Stop here and hand back to the user. Tell them to:
     - Restart the agent, in the project directory if you could not move there
-    - Approve the FuseBase MCP servers when prompted
+    - Approve the FuseBase MCP servers if prompted
     - Ask you to continue once it is back
+    - Provide link to the guide about agent restart `https://ai-dev.thefusebase.com/full-product-restart?agent=AGENT`, instead of AGENT put either `claude-code` or `codex`.
 
-    Do not start on the app itself in this session. The generated `AGENTS.md` requires the MCP
-    servers for all data and backend work, and they are not connected until the restart.
+    Do not start on the app itself in this session until MCP is connected.
 
 6. After the restart, read the generated `AGENTS.md` and follow it from there.
+
+If user saying that they restarted the agent, but MCP is still not working it might be that user did not close the agent completely and they need to close it using tray(aka notification area) on windows or Dock on mac.
 
 `init` never prompts you: without a terminal it exits naming the flag it needs. If it asks for something, pass the flag it names and run it again.
 
