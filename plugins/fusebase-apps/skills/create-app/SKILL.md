@@ -20,7 +20,7 @@ Run `fusebase update` to check the CLI is installed and current.
 - Command not found, or the update fails: load the `install-cli` skill, follow it, then come back
   here. It handles installation, Node and login on every platform.
 - Otherwise continue.
-- For Claude Code: ask user to update the FuseBase market place in plugin settings, use emojis to highlight the text. Separate the update message visibly.
+- Ask user to update the FuseBase marketplace in plugin settings, use emojis to highlight the text. Separate the update message visibly.
 
 
 ## Creating a product
