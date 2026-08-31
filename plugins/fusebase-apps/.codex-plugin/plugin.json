@@ -14,7 +14,7 @@
   "interface": {
     "displayName": "FuseBase Apps",
     "shortDescription": "Build FuseBase apps",
-    "longDescription": "Ask your agent for an app and it creates one on FuseBase. The plugin carries two skills: one that creates a product with the fusebase CLI and hands off to the generated project, and one that installs, updates and authenticates the CLI the first time it is needed.",
+    "longDescription": "Ask your agent for an app and it creates one on FuseBase. The plugin carries three skills: one that creates a product with the fusebase CLI and hands off to the generated project, one that updates the CLI and the project assets before work in an existing app, and one that installs, updates and authenticates the CLI the first time it is needed.",
     "developerName": "FuseBase",
     "category": "Developer Tools",
     "capabilities": ["Write"],

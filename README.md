@@ -63,12 +63,13 @@ active.
 
 ## What the plugin contributes
 
-Two skills, and nothing else. No hooks, no agents, no MCP server, and nothing written to your
+Three skills, and nothing else. No hooks, no agents, no MCP server, and nothing written to your
 `CLAUDE.md` or `AGENTS.md`.
 
 | Skill | What it does |
 | --- | --- |
 | `create-app` | Creates a FuseBase app. Picks your organisation, makes a directory, runs `fusebase init`, then hands off to the generated project's own skills. |
+| `existing-fusebase-app` | Updates the CLI and the project's own agent instructions when you open an app that already exists. |
 | `install-cli` | Installs, updates and authenticates the FuseBase CLI. Loads only when the CLI is missing or out of date. |
 
 Installing the plugin installs nothing else. The CLI and the login happen the first time you
