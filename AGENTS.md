@@ -27,6 +27,7 @@ plugins/fusebase-apps/
   .codex-plugin/plugin.json     # required for Codex
   skills/
     create-app/SKILL.md         # when and how to create a FuseBase app
+    existing-fusebase-app/SKILL.md  # update the CLI before working in an existing app
     install-cli/SKILL.md        # install, update and authenticate the CLI
 docs/                       # internal planning material, gitignored, never published
 ```
@@ -46,7 +47,7 @@ Component directories (`skills/`, `agents/`, `hooks/`) live at the plugin root, 
 | Repository | `fusebase-dev/agent-plugins` | The marketplace-add step, and the Add marketplace dialog |
 | Marketplace | `fusebase` | After `@` in install commands, and in each agent's plugin manager |
 | Plugin | `fusebase-apps` | Before `@` in install commands; namespaces every skill |
-| Skills | `create-app`, `install-cli` | `/fusebase-apps:create-app` |
+| Skills | `create-app`, `existing-fusebase-app`, `install-cli` | `/fusebase-apps:create-app` |
 
 Marketplace names are global per user, and adding a different marketplace under the same name
 replaces the first. Every future FuseBase plugin belongs in this one catalog. Names resembling
