@@ -1,6 +1,6 @@
 {
   "name": "fusebase-apps",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Create FuseBase apps by asking your agent. Installs and authenticates the fusebase CLI when it is first needed.",
   "author": {
     "name": "FuseBase",
