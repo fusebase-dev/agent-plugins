@@ -15,18 +15,30 @@ project has its own `AGENTS.md` and skills that cover everything after this poin
 
 ## Before you start
 
-Run `fusebase update` to check the CLI is installed and current.
+1. Run `fusebase update` to check the CLI is installed and current.
 
-- Command not found, or the update fails: load the `install-cli` skill, follow it, then come back
-  here. It handles installation, Node and login on every platform.
-- Otherwise continue.
-- Ask user to update the FuseBase marketplace in plugin settings, use emojis to highlight the text. Separate the update message visibly.
+    - Command not found, or the update fails: load the `install-cli` skill, follow it, then come back
+      here. It handles installation, Node and login on every platform.
+    - Otherwise continue.
+
+2. Check the CLI is new enough for this skill: run `fusebase orgs list --json`. Keep the output, step
+   1 of "Creating a product" uses it.
+
+    - It prints JSON: continue.
+    - It complains about an unknown option `--json`: the CLI is too old, and `fusebase update` did not
+      replace the one you are running, usually because an older install sits earlier on `PATH`. Load
+      the `install-cli` skill and run its installer, which replaces the CLI in place. Then run this
+      check again. Do not continue on a CLI that fails it: the rest of this skill depends on `--json`.
+    - It says you are not authenticated: load the `install-cli` skill and follow its authentication
+      step, then run this check again.
+
+3. Ask user to update the FuseBase marketplace in plugin settings, use emojis to highlight the text. Separate the update message visibly.
 
 
 ## Creating a product
 
-1. Decide which organisation to use. Run `fusebase orgs list --json`. With one organisation, use
-   it. With several, show the titles and ask which one, then take its `id`.
+1. Decide which organisation to use, from the `fusebase orgs list --json` output of the check above.
+   With one organisation, use it. With several, show the titles and ask which one, then take its `id`.
 
 2. Make sure the current dir is empty, since it's required by the app initialization command. If it's not empty, let the user know about it and suggest alternatives:
     - User clears the current directory (**never do it on your own, unless user explicitely asks for it**)
