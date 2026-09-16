@@ -48,16 +48,9 @@ Run `node --version`. Without Node the CLI cannot create apps. Install it with w
 The Windows installer handles Node itself.
 
 
-## 3. Check the install took, and authenticate
+## 3. Authenticate
 
-Run `fusebase orgs list --json`. One command answers both questions.
-
-- It prints JSON: the CLI is current and logged in. Skip the rest of this step.
-- It complains about an unknown option `--json`: the installer ran, but a different, older `fusebase`
-  is still what the shell resolves. Run `which fusebase` (`where fusebase` on Windows) and tell the
-  user which path is winning, so they can remove it. Until that is fixed, use the freshly installed
-  path directly: `~/.local/bin/fusebase` on macOS and Linux.
-- It says you are not authenticated: continue below.
+Check first: `fusebase orgs list` fails when nobody is logged in. If it lists organisations, skip this step.
 
 `fusebase auth` opens a browser and waits with no timeout, so it will outlive your command timeout.
 Start it in the background and tell the user to finish logging in in the browser window that opened. It exits 0 once the login lands, so wait for the process to exit rather than polling anything.
