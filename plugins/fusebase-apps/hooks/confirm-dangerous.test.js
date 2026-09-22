@@ -5,8 +5,9 @@ const { execFileSync } = require("node:child_process");
 const { join } = require("node:path");
 
 const HOOK = join(__dirname, "confirm-dangerous.js");
-const CLAUDE = { CLAUDE_PLUGIN_ROOT: "/plugins/fusebase-apps" };
-const CODEX = { ...CLAUDE, PLUGIN_ROOT: "/plugins/fusebase-apps" };
+const CLAUDE = { CLAUDE_PLUGIN_ROOT: "/plugins/fusebase-apps", CLAUDE_PROJECT_DIR: "/work/app" };
+// Codex sets CLAUDE_PLUGIN_ROOT as an alias, but never CLAUDE_PROJECT_DIR.
+const CODEX = { CLAUDE_PLUGIN_ROOT: "/plugins/fusebase-apps", PLUGIN_ROOT: "/plugins/fusebase-apps" };
 
 function run(event, env) {
   const out = execFileSync("node", [HOOK], {
@@ -27,8 +28,8 @@ const perOpCall = (input) => ({ tool_name: "mcp__fusebase-dashboards__deleteData
 const asked = run(toolCall({ fileId: "f1", confirm: true }), CLAUDE);
 assert.strictEqual(asked.permissionDecision, "ask");
 assert.match(asked.permissionDecisionReason, /^Approval required by the FuseBase plugin\. fusebase-gate: deleteFile/);
-assert.match(asked.permissionDecisionReason, /"fileId":"f1"/);
-assert.doesNotMatch(asked.permissionDecisionReason, /"confirm"/);
+assert.match(asked.permissionDecisionReason, /fileId="f1"/);
+assert.doesNotMatch(asked.permissionDecisionReason, /confirm=/);
 
 // A per-op tool carries confirm at the top level.
 assert.strictEqual(run(perOpCall({ databaseId: "d1", confirm: true }), CLAUDE).permissionDecision, "ask");
@@ -42,14 +43,19 @@ assert.strictEqual(run({ tool_name: "mcp__fusebase-gate__tools_list", tool_input
 const denied = run(toolCall({ fileId: "f1", confirm: true }), CODEX);
 assert.strictEqual(denied.permissionDecision, "deny");
 assert.match(denied.permissionDecisionReason, /FUSEBASE_ALLOW_DANGEROUS=1/);
-assert.strictEqual(
-  run(toolCall({ fileId: "f1", confirm: true }), { ...CODEX, FUSEBASE_ALLOW_DANGEROUS: "1" }).permissionDecision,
-  "allow",
-);
 
-// Long arguments are cut, and malformed input never blocks the call.
-const long = run(toolCall({ sql: "x".repeat(500), confirm: true }), CLAUDE);
-assert.ok(long.permissionDecisionReason.length < 450, long.permissionDecisionReason.length);
+// The override means "no opinion", never "allow": Codex still runs its own approval flow.
+assert.strictEqual(run(toolCall({ fileId: "f1", confirm: true }), { ...CODEX, FUSEBASE_ALLOW_DANGEROUS: "1" }), null);
+
+// A host that is neither is treated as one that cannot ask.
+assert.strictEqual(run(toolCall({ fileId: "f1", confirm: true }), {}).permissionDecision, "deny");
+
+// Every argument name survives, however long the values are: the last flag is often the dangerous one.
+const long = run(toolCall({ sql: "x".repeat(500), allowAll: true, confirm: true }), CLAUDE);
+assert.match(long.permissionDecisionReason, /allowAll=true/);
+assert.ok(long.permissionDecisionReason.length < 400, long.permissionDecisionReason.length);
+
+// Malformed input never blocks the call.
 assert.strictEqual(run("not json", CLAUDE), null);
 assert.strictEqual(run({ tool_name: "mcp__fusebase-gate__tool_call" }, CLAUDE), null);
 

@@ -8,7 +8,7 @@
 // Only `confirm: true` is looked at, never a list of operation ids, so the hook stays
 // correct when the servers flag more operations.
 
-const MAX_ARGS_CHARS = 300;
+const MAX_VALUE_CHARS = 120;
 
 function emit(permissionDecision, permissionDecisionReason) {
   process.stdout.write(
@@ -22,11 +22,17 @@ function emit(permissionDecision, permissionDecisionReason) {
   );
 }
 
+// Every argument name is shown, because the one that decides the blast radius
+// (`allowAll`, a WHERE-less statement) is often the last. Only values are cut.
 function summarise(args) {
-  const { confirm, ...rest } = args;
-  const text = JSON.stringify(rest);
-  if (!text || text === "{}") return "No arguments.";
-  return text.length > MAX_ARGS_CHARS ? `${text.slice(0, MAX_ARGS_CHARS)}…` : text;
+  const names = Object.keys(args).filter((key) => key !== "confirm");
+  if (names.length === 0) return "No arguments.";
+  return names
+    .map((name) => {
+      const text = JSON.stringify(args[name]) ?? "undefined";
+      return `${name}=${text.length > MAX_VALUE_CHARS ? `${text.slice(0, MAX_VALUE_CHARS)}…` : text}`;
+    })
+    .join(", ");
 }
 
 function decide(event) {
@@ -41,17 +47,17 @@ function decide(event) {
   const opId = input.opId || parts[parts.length - 1] || "operation";
   const what = `Approval required by the FuseBase plugin. ${server}: ${opId} is irreversible and this call confirms it. Arguments: ${summarise(args)}`;
 
-  // Codex sets PLUGIN_ROOT; Claude Code sets CLAUDE_PLUGIN_ROOT alone.
-  if (!process.env.PLUGIN_ROOT) {
+  // Claude Code sets CLAUDE_PROJECT_DIR for hooks and is the only host that acts on "ask".
+  // Codex sets CLAUDE_PLUGIN_ROOT as an alias but knows nothing of CLAUDE_PROJECT_DIR.
+  if (process.env.CLAUDE_PROJECT_DIR) {
     emit("ask", what);
     return;
   }
 
   // Codex parses "ask" but does not act on it yet, so the safe answer there is "deny".
-  if (process.env.FUSEBASE_ALLOW_DANGEROUS === "1") {
-    emit("allow", `${what} Allowed by FUSEBASE_ALLOW_DANGEROUS.`);
-    return;
-  }
+  // With the override set we say nothing at all: "allow" would skip the host's own
+  // approval flow, which is the opposite of what this hook is for.
+  if (process.env.FUSEBASE_ALLOW_DANGEROUS === "1") return;
 
   emit(
     "deny",

@@ -51,8 +51,13 @@ rather than to a generated app. It keys on `confirm: true` in the tool input and
 it never needs updating when fusebase-gate or dashboard-service flags another operation as dangerous.
 
 Claude Code gets `permissionDecision: "ask"`. Codex parses `ask` but does not act on it yet, so it
-gets `deny` unless the person set `FUSEBASE_ALLOW_DANGEROUS=1`. The two are told apart by `PLUGIN_ROOT`,
-which only Codex sets; both set `CLAUDE_PLUGIN_ROOT`. A malformed payload exits silently, because a
+gets `deny`. The two are told apart by `CLAUDE_PROJECT_DIR`, which Claude Code sets for hooks and
+Codex has no knowledge of; `CLAUDE_PLUGIN_ROOT` cannot be used for this because Codex sets it as an
+alias. Any other host counts as one that cannot ask.
+
+With `FUSEBASE_ALLOW_DANGEROUS=1` the hook exits silently instead of answering `allow`. `allow`
+means "execute" and would skip the host's own approval flow, which is weaker than having no plugin
+at all; standing aside leaves that flow in place. A malformed payload exits silently too, because a
 hook that throws must not be able to block a tool call.
 
 The matcher assumes the standard MCP tool names, `mcp__fusebase-gate__*` and

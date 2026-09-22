@@ -93,10 +93,11 @@ arguments you are approving. Every other call, including every read, passes thro
 In **Claude Code** you get the usual permission prompt and choose.
 
 **Codex** cannot yet prompt from a hook, so it refuses the call instead and tells the agent to hand
-it back to you. If you would rather approve these operations yourself in the moment, start Codex
-with `FUSEBASE_ALLOW_DANGEROUS=1` in your environment for that session; the hook then lets confirmed
-calls through and Codex asks you with its own approval flow. Codex also asks you once to trust the
-hook before it will run it, under `/hooks`, and asks again whenever the hook changes.
+it back to you. If that refusal is in your way, start Codex with `FUSEBASE_ALLOW_DANGEROUS=1` in
+your environment for that session: the hook then stands aside and Codex decides on its own. Be aware
+of what that means, because Codex approves tool calls automatically in some configurations and in
+those the operation runs with no question at all. Codex also asks you once to trust the hook before
+it will run it, under `/hooks`, and asks again whenever the hook changes.
 
 ## What it does to your machine
 
