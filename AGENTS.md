@@ -29,6 +29,10 @@ plugins/fusebase-apps/
     create-app/SKILL.md         # when and how to create a FuseBase app
     existing-fusebase-app/SKILL.md  # update the CLI before working in an existing app
     install-cli/SKILL.md        # install, update and authenticate the CLI
+  hooks/
+    hooks.json                  # PreToolUse entry, read by both agents from this path
+    confirm-dangerous.js        # holds a confirmed irreversible MCP call for the human
+    confirm-dangerous.test.js   # node hooks/confirm-dangerous.test.js, no dependencies
 docs/                       # internal planning material, gitignored, never published
 ```
 
@@ -39,6 +43,23 @@ under `~/.codex/.tmp/` rather than guessing.
 
 Component directories (`skills/`, `agents/`, `hooks/`) live at the plugin root, not inside
 `.claude-plugin/`. Getting this wrong fails silently.
+
+## The confirmation hook
+
+`hooks/confirm-dangerous.js` is authored here, not in `apps-cli`, because it belongs to the plugin
+rather than to a generated app. It keys on `confirm: true` in the tool input and on nothing else, so
+it never needs updating when fusebase-gate or dashboard-service flags another operation as dangerous.
+
+Claude Code gets `permissionDecision: "ask"`. Codex parses `ask` but does not act on it yet, so it
+gets `deny` unless the person set `FUSEBASE_ALLOW_DANGEROUS=1`. The two are told apart by `PLUGIN_ROOT`,
+which only Codex sets; both set `CLAUDE_PLUGIN_ROOT`. A malformed payload exits silently, because a
+hook that throws must not be able to block a tool call.
+
+The matcher assumes the standard MCP tool names, `mcp__fusebase-gate__*` and
+`mcp__fusebase-dashboards__*`, which is what `fusebase init` writes. A host configured to expose MCP
+tools under unprefixed names would not match.
+
+Run `node plugins/fusebase-apps/hooks/confirm-dangerous.test.js` after touching either file.
 
 ## Naming
 

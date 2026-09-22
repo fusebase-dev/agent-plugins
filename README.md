@@ -63,7 +63,7 @@ active.
 
 ## What the plugin contributes
 
-Three skills, and nothing else. No hooks, no agents, no MCP server, and nothing written to your
+Three skills and one safety hook. No agents, no MCP server, and nothing written to your
 `CLAUDE.md` or `AGENTS.md`.
 
 | Skill | What it does |
@@ -72,8 +72,31 @@ Three skills, and nothing else. No hooks, no agents, no MCP server, and nothing 
 | `existing-fusebase-app` | Updates the CLI and the project's own agent instructions when you open an app that already exists. |
 | `install-cli` | Installs, updates and authenticates the FuseBase CLI. Loads only when the CLI is missing or out of date. |
 
+| Hook | What it does |
+| --- | --- |
+| `confirm-dangerous` | Holds a FuseBase MCP call that confirms an irreversible operation until you approve it. |
+
 Installing the plugin installs nothing else. The CLI and the login happen the first time you
 actually ask for an app.
+
+## The confirmation hook
+
+FuseBase apps talk to two MCP servers, `fusebase-gate` and `fusebase-dashboards`. Those servers
+refuse an irreversible operation, such as dropping a data store or deleting a file, unless the call
+carries `confirm: true`. That protects you from an accident, but not from an agent that decides to
+confirm by itself.
+
+The hook closes that gap. Whenever a call to either server carries `confirm: true`, your agent has
+to stop and get your answer, and the request tells you which server, which operation and which
+arguments you are approving. Every other call, including every read, passes through untouched.
+
+In **Claude Code** you get the usual permission prompt and choose.
+
+**Codex** cannot yet prompt from a hook, so it refuses the call instead and tells the agent to hand
+it back to you. If you would rather approve these operations yourself in the moment, start Codex
+with `FUSEBASE_ALLOW_DANGEROUS=1` in your environment for that session; the hook then lets confirmed
+calls through and Codex asks you with its own approval flow. Codex also asks you once to trust the
+hook before it will run it, under `/hooks`, and asks again whenever the hook changes.
 
 ## What it does to your machine
 
