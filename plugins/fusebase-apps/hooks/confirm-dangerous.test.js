@@ -50,10 +50,31 @@ assert.strictEqual(run(toolCall({ fileId: "f1", confirm: true }), { ...CODEX, FU
 // A host that is neither is treated as one that cannot ask.
 assert.strictEqual(run(toolCall({ fileId: "f1", confirm: true }), {}).permissionDecision, "deny");
 
-// Every argument name survives, however long the values are: the last flag is often the dangerous one.
-const long = run(toolCall({ sql: "x".repeat(5000), allowAll: true, confirm: true }), CLAUDE);
-assert.match(long.permissionDecisionReason, /allowAll=true/);
-assert.ok(long.permissionDecisionReason.length < 2400, long.permissionDecisionReason.length);
+// Gate ops carry the request under `body`. The field that sets the blast radius is shown
+// by its dotted path even behind 60 wide columns, which filled the old per-argument cap.
+const values = Object.fromEntries(Array.from({ length: 60 }, (_, i) => [`column_${i}`, `value ${i} `.repeat(4)]));
+const update = run(
+  toolCall({ orgId: "o1", storeId: "s1", stage: "dev", body: { tableName: "orders", values, allowAll: true }, confirm: true }),
+  CLAUDE,
+);
+assert.match(update.permissionDecisionReason, /body\.tableName="orders"/);
+assert.match(update.permissionDecisionReason, /body\.values\.column_59=/);
+assert.match(update.permissionDecisionReason, /body\.allowAll=true/);
+
+// The last statement of a batch is shown, however many harmless ones come first.
+const operations = Array.from({ length: 25 }, (_, i) => ({ op: "execute", sql: `UPDATE orders SET note = 'reviewed by the nightly job, batch ${i}' WHERE id = ${i} AND status = 'draft'` }));
+operations.push({ op: "execute", sql: "DELETE FROM orders" });
+const batch = run(toolCall({ orgId: "o1", storeId: "s1", stage: "dev", body: { operations }, confirm: true }), CLAUDE);
+assert.match(batch.permissionDecisionReason, /body\.operations\[25\]\.sql="DELETE FROM orders"/);
+
+// A bulk payload is cut, and the cut says how much it hid.
+const rows = Array.from({ length: 5000 }, (_, i) => ({ id: i }));
+const bulk = run(toolCall({ body: { rows, allowAll: true }, confirm: true }), CLAUDE);
+assert.match(bulk.permissionDecisionReason, /body\.rows: 50 of 5000 items shown, 4950 hidden/);
+assert.match(bulk.permissionDecisionReason, /body\.allowAll=true/);
+assert.ok(bulk.permissionDecisionReason.length < 3000, bulk.permissionDecisionReason.length);
+const huge = run(toolCall({ sql: "x".repeat(5000), allowAll: true, confirm: true }), CLAUDE);
+assert.match(huge.permissionDecisionReason, /… \(3002 more chars\), allowAll=true/);
 
 // A realistic statement is shown in full, not cut mid-WHERE.
 const sql = `DELETE FROM orders WHERE ${"status = 'draft' AND ".repeat(20)}created_at < '2026-01-01'`;

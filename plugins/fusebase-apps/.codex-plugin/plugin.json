@@ -11,6 +11,7 @@
   "license": "MIT",
   "keywords": ["fusebase", "app", "internal-tool", "dashboard", "cli"],
   "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
   "interface": {
     "displayName": "FuseBase Apps",
     "shortDescription": "Build FuseBase apps",

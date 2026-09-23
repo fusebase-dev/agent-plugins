@@ -9,8 +9,9 @@
 // correct when the servers flag more operations.
 
 // Long enough for a full SQL statement or migration, the thing the person has to read.
-// The cap only stops a bulk payload (thousands of rows) from burying the prompt.
+// The caps only stop a bulk payload (thousands of rows) from burying the prompt.
 const MAX_VALUE_CHARS = 2000;
+const MAX_ARRAY_ITEMS = 50;
 
 function emit(permissionDecision, permissionDecisionReason) {
   process.stdout.write(
@@ -24,17 +25,33 @@ function emit(permissionDecision, permissionDecisionReason) {
   );
 }
 
-// Every argument name is shown, because the one that decides the blast radius
-// (`allowAll`, a WHERE-less statement) is often the last. Only values are cut.
+// Every field is shown as a dotted path, because the one that decides the blast radius
+// (`body.allowAll`, the last statement of a batch) is often nested and last. Gate ops carry
+// their whole request under one `body` argument. Only long leaf values and long arrays are
+// cut, and each cut says how much it hid.
+function flatten(value, path, lines) {
+  if (value && typeof value === "object" && Object.keys(value).length > 0) {
+    if (Array.isArray(value)) {
+      value.slice(0, MAX_ARRAY_ITEMS).forEach((item, i) => flatten(item, `${path}[${i}]`, lines));
+      if (value.length > MAX_ARRAY_ITEMS) {
+        lines.push(`${path}: ${MAX_ARRAY_ITEMS} of ${value.length} items shown, ${value.length - MAX_ARRAY_ITEMS} hidden`);
+      }
+    } else {
+      for (const [key, item] of Object.entries(value)) flatten(item, path ? `${path}.${key}` : key, lines);
+    }
+    return;
+  }
+  const text = JSON.stringify(value) ?? "undefined";
+  const hidden = text.length - MAX_VALUE_CHARS;
+  lines.push(`${path}=${hidden > 0 ? `${text.slice(0, MAX_VALUE_CHARS)}… (${hidden} more chars)` : text}`);
+}
+
 function summarise(args) {
-  const names = Object.keys(args).filter((key) => key !== "confirm");
-  if (names.length === 0) return "No arguments.";
-  return names
-    .map((name) => {
-      const text = JSON.stringify(args[name]) ?? "undefined";
-      return `${name}=${text.length > MAX_VALUE_CHARS ? `${text.slice(0, MAX_VALUE_CHARS)}…` : text}`;
-    })
-    .join(", ");
+  const lines = [];
+  for (const [name, value] of Object.entries(args)) {
+    if (name !== "confirm") flatten(value, name, lines);
+  }
+  return lines.length === 0 ? "No arguments." : lines.join(", ");
 }
 
 function decide(event) {

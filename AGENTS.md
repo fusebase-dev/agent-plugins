@@ -30,7 +30,7 @@ plugins/fusebase-apps/
     existing-fusebase-app/SKILL.md  # update the CLI before working in an existing app
     install-cli/SKILL.md        # install, update and authenticate the CLI
   hooks/
-    hooks.json                  # PreToolUse entry, read by both agents from this path
+    hooks.json                  # PreToolUse entry; Claude reads this path, Codex via the manifest `hooks` key
     confirm-dangerous.js        # holds a confirmed irreversible MCP call for the human
     confirm-dangerous.test.js   # node hooks/confirm-dangerous.test.js, no dependencies
 docs/                       # internal planning material, gitignored, never published

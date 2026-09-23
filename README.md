@@ -88,7 +88,10 @@ confirm by itself.
 
 The hook closes that gap. Whenever a call to either server carries `confirm: true`, your agent has
 to stop and get your answer, and the request tells you which server, which operation and which
-arguments you are approving. Every other call, including every read, passes through untouched.
+arguments you are approving. Each argument is listed by its full path, for example
+`body.allowAll=true`, so a flag deep inside the request is not missed. Very long values and long
+lists are shortened, and the request says how much was left out. Every other call, including every
+read, passes through untouched.
 
 In **Claude Code** you get the usual permission prompt and choose.
 
