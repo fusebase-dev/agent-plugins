@@ -10,7 +10,7 @@
 
 // Long enough for a full SQL statement or migration, the thing the person has to read.
 // The caps only stop a bulk payload (thousands of rows) from burying the prompt.
-const MAX_VALUE_CHARS = 2000;
+const MAX_VALUE_CHARS = 1000;
 const MAX_ARRAY_ITEMS = 50;
 
 function emit(permissionDecision, permissionDecisionReason) {

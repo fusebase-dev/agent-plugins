@@ -74,7 +74,7 @@ assert.match(bulk.permissionDecisionReason, /body\.rows: 50 of 5000 items shown,
 assert.match(bulk.permissionDecisionReason, /body\.allowAll=true/);
 assert.ok(bulk.permissionDecisionReason.length < 3000, bulk.permissionDecisionReason.length);
 const huge = run(toolCall({ sql: "x".repeat(5000), allowAll: true, confirm: true }), CLAUDE);
-assert.match(huge.permissionDecisionReason, /… \(3002 more chars\), allowAll=true/);
+assert.match(huge.permissionDecisionReason, /… \(4002 more chars\), allowAll=true/);
 
 // A realistic statement is shown in full, not cut mid-WHERE.
 const sql = `DELETE FROM orders WHERE ${"status = 'draft' AND ".repeat(20)}created_at < '2026-01-01'`;
