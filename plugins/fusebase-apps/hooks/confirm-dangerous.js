@@ -8,7 +8,9 @@
 // Only `confirm: true` is looked at, never a list of operation ids, so the hook stays
 // correct when the servers flag more operations.
 
-const MAX_VALUE_CHARS = 120;
+// Long enough for a full SQL statement or migration, the thing the person has to read.
+// The cap only stops a bulk payload (thousands of rows) from burying the prompt.
+const MAX_VALUE_CHARS = 2000;
 
 function emit(permissionDecision, permissionDecisionReason) {
   process.stdout.write(

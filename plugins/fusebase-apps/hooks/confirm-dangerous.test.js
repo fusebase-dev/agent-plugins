@@ -51,9 +51,14 @@ assert.strictEqual(run(toolCall({ fileId: "f1", confirm: true }), { ...CODEX, FU
 assert.strictEqual(run(toolCall({ fileId: "f1", confirm: true }), {}).permissionDecision, "deny");
 
 // Every argument name survives, however long the values are: the last flag is often the dangerous one.
-const long = run(toolCall({ sql: "x".repeat(500), allowAll: true, confirm: true }), CLAUDE);
+const long = run(toolCall({ sql: "x".repeat(5000), allowAll: true, confirm: true }), CLAUDE);
 assert.match(long.permissionDecisionReason, /allowAll=true/);
-assert.ok(long.permissionDecisionReason.length < 400, long.permissionDecisionReason.length);
+assert.ok(long.permissionDecisionReason.length < 2400, long.permissionDecisionReason.length);
+
+// A realistic statement is shown in full, not cut mid-WHERE.
+const sql = `DELETE FROM orders WHERE ${"status = 'draft' AND ".repeat(20)}created_at < '2026-01-01'`;
+const full = run(toolCall({ sql, confirm: true }), CLAUDE);
+assert.ok(full.permissionDecisionReason.includes(sql));
 
 // Malformed input never blocks the call.
 assert.strictEqual(run("not json", CLAUDE), null);
