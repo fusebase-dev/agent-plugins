@@ -74,7 +74,7 @@ Three skills and one safety hook. No agents, no MCP server, and nothing written 
 
 | Hook | What it does |
 | --- | --- |
-| `confirm-dangerous` | Holds a FuseBase MCP call that confirms an irreversible operation until you approve it. |
+| `confirm-dangerous` | Claude Code only. Holds a FuseBase MCP call that confirms an irreversible operation until you approve it. |
 
 Installing the plugin installs nothing else. The CLI and the login happen the first time you
 actually ask for an app.
@@ -95,12 +95,10 @@ read, passes through untouched.
 
 In **Claude Code** you get the usual permission prompt and choose.
 
-**Codex** cannot yet prompt from a hook, so it refuses the call instead and tells the agent to hand
-it back to you. If that refusal is in your way, start Codex with `FUSEBASE_ALLOW_DANGEROUS=1` in
-your environment for that session: the hook then stands aside and Codex decides on its own. Be aware
-of what that means, because Codex approves tool calls automatically in some configurations and in
-those the operation runs with no question at all. Codex also asks you once to trust the hook before
-it will run it, under `/hooks`, and asks again whenever the hook changes.
+**Codex** cannot prompt from a hook yet, so the hook does nothing there. The servers still refuse
+an irreversible operation without `confirm: true`, and whether a confirmed call runs is up to
+Codex's own approval settings. Codex may still list the hook under `/hooks` and ask you to trust
+it; trusting it changes nothing.
 
 ## What it does to your machine
 
