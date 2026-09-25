@@ -30,7 +30,7 @@ plugins/fusebase-apps/
     existing-fusebase-app/SKILL.md  # update the CLI before working in an existing app
     install-cli/SKILL.md        # install, update and authenticate the CLI
   hooks/
-    hooks.json                  # PreToolUse entry; Claude reads this path, Codex via the manifest `hooks` key
+    hooks.json                  # PreToolUse entry; Claude Code reads this path
     confirm-dangerous.js        # holds a confirmed irreversible MCP call for the human
     confirm-dangerous.test.js   # node hooks/confirm-dangerous.test.js, no dependencies
 docs/                       # internal planning material, gitignored, never published
@@ -50,15 +50,13 @@ Component directories (`skills/`, `agents/`, `hooks/`) live at the plugin root, 
 rather than to a generated app. It keys on `confirm: true` in the tool input and on nothing else, so
 it never needs updating when fusebase-gate or dashboard-service flags another operation as dangerous.
 
-Claude Code gets `permissionDecision: "ask"`. Codex parses `ask` but does not act on it yet, so it
-gets `deny`. The two are told apart by `CLAUDE_PROJECT_DIR`, which Claude Code sets for hooks and
-Codex has no knowledge of; `CLAUDE_PLUGIN_ROOT` cannot be used for this because Codex sets it as an
-alias. Any other host counts as one that cannot ask.
-
-With `FUSEBASE_ALLOW_DANGEROUS=1` the hook exits silently instead of answering `allow`. `allow`
-means "execute" and would skip the host's own approval flow, which is weaker than having no plugin
-at all; standing aside leaves that flow in place. A malformed payload exits silently too, because a
-hook that throws must not be able to block a tool call.
+Claude Code gets `permissionDecision: "ask"`. Everywhere else the hook does nothing: Codex parses
+`ask` but does not act on it, and answering `deny` there instead was ruled out (NIM-44889, 2026-09-25).
+The Codex manifest therefore declares no `hooks`. Claude Code is recognised by `CLAUDE_PROJECT_DIR`,
+which it sets for hooks and Codex does not; `CLAUDE_PLUGIN_ROOT` cannot be used because Codex sets
+it as an alias. Never answer `allow`: it means "execute" and skips the host's own approval flow.
+A malformed payload exits silently too, because a hook that throws must not be able to block a
+tool call.
 
 The matcher assumes the standard MCP tool names, `mcp__fusebase-gate__*` and
 `mcp__fusebase-dashboards__*`, which is what `fusebase init` writes. A host configured to expose MCP

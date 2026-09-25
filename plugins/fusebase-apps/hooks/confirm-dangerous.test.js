@@ -39,16 +39,9 @@ assert.strictEqual(run(toolCall({ fileId: "f1" }), CLAUDE), null);
 assert.strictEqual(run(toolCall({ fileId: "f1", confirm: "true" }), CLAUDE), null);
 assert.strictEqual(run({ tool_name: "mcp__fusebase-gate__tools_list", tool_input: {} }, CLAUDE), null);
 
-// Codex cannot ask, so it denies unless the person set the override.
-const denied = run(toolCall({ fileId: "f1", confirm: true }), CODEX);
-assert.strictEqual(denied.permissionDecision, "deny");
-assert.match(denied.permissionDecisionReason, /FUSEBASE_ALLOW_DANGEROUS=1/);
-
-// The override means "no opinion", never "allow": Codex still runs its own approval flow.
-assert.strictEqual(run(toolCall({ fileId: "f1", confirm: true }), { ...CODEX, FUSEBASE_ALLOW_DANGEROUS: "1" }), null);
-
-// A host that is neither is treated as one that cannot ask.
-assert.strictEqual(run(toolCall({ fileId: "f1", confirm: true }), {}).permissionDecision, "deny");
+// Codex and any other host: the hook does nothing at all, confirmed or not.
+assert.strictEqual(run(toolCall({ fileId: "f1", confirm: true }), CODEX), null);
+assert.strictEqual(run(toolCall({ fileId: "f1", confirm: true }), {}), null);
 
 // Gate ops carry the request under `body`. The field that sets the blast radius is shown
 // by its dotted path even behind 60 wide columns, which filled the old per-argument cap.
