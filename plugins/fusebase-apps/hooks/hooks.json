@@ -1,0 +1,17 @@
+{
+  "description": "Asks you before a FuseBase MCP call that confirms an irreversible operation.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__fusebase-(gate|dashboards)__",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/confirm-dangerous.js\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
