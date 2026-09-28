@@ -41,10 +41,11 @@ assert.strictEqual(run(toolCall({ fileId: "f1" }), CLAUDE), null);
 assert.strictEqual(run(toolCall({ fileId: "f1", confirm: "true" }), CLAUDE), null);
 assert.strictEqual(run({ tool_name: "mcp__fusebase-gate__tools_list", tool_input: {} }, CLAUDE), null);
 
-// Every permission mode asks; "don't ask again" is the only opt-out.
+// Bypass permissions: the person opted out of prompts, so the hook stays silent.
+// Every other mode, auto included, asks.
 const inMode = (permission_mode) => ({ ...toolCall({ fileId: "f1", confirm: true }), permission_mode });
+assert.strictEqual(run(inMode("bypassPermissions"), CLAUDE), null);
 assert.strictEqual(run(inMode("auto"), CLAUDE).permissionDecision, "ask");
-assert.strictEqual(run(inMode("bypassPermissions"), CLAUDE).permissionDecision, "ask");
 assert.strictEqual(run(inMode("default"), CLAUDE).permissionDecision, "ask");
 assert.strictEqual(run(inMode("acceptEdits"), CLAUDE).permissionDecision, "ask");
 

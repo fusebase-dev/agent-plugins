@@ -103,9 +103,10 @@ own prompt counts: a rule you add in `/permissions` does not switch the hook off
 another prompt answered while the hook's prompt is open (a second session in the same project,
 or a parallel call in the same session).
 
-The hook asks in every permission mode, auto mode and `--dangerously-skip-permissions` included:
-**Yes, and don't ask again** is the way to stop being asked. The servers still demand
-`confirm: true` and still log every irreversible call.
+The hook asks in every permission mode, auto mode included, and **Yes, and don't ask again** is
+the way to stop being asked. Only bypass permissions (`--dangerously-skip-permissions`) skips the
+prompt: the hook stays silent there, as Claude does for every other tool. The servers still demand
+`confirm: true` and still log every irreversible call, whatever mode you use.
 
 **Codex** cannot prompt from a hook yet, so the hook does nothing there. The servers still refuse
 an irreversible operation without `confirm: true`, and whether a confirmed call runs is up to

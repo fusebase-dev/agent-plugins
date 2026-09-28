@@ -138,6 +138,10 @@ function decide(event) {
   } catch {
     // Broken state: a confirmed call below fails the same way and is asked.
   }
+  // Bypass permissions: the person opted out of every prompt, so Claude's own setting decides.
+  // Auto mode still asks. The server still demands confirm and logs the call.
+  if (event.permission_mode === "bypassPermissions") return;
+
   const input = event.tool_input ?? {};
   // `tool_call` nests the operation arguments under `args`; a per-op tool passes them directly.
   const args = input.args && typeof input.args === "object" ? input.args : input;
