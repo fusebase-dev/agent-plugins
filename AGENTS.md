@@ -50,8 +50,8 @@ Component directories (`skills/`, `agents/`, `hooks/`) live at the plugin root, 
 rather than to a generated app. It keys on `confirm: true` in the tool input and on nothing else, so
 it never needs updating when fusebase-gate or dashboard-service flags another operation as dangerous.
 
-Claude Code gets `permissionDecision: "ask"`, except in auto mode and bypass permissions (`permission_mode`
-`auto` / `bypassPermissions`), where the person opted out of prompts and the hook stays silent. Everywhere else the hook does nothing: Codex parses
+Claude Code gets `permissionDecision: "ask"` in every permission mode; Claude honours it in auto and
+bypass too (checked live on 2.1.283), and "don't ask again" is the opt-out. Everywhere else the hook does nothing: Codex parses
 `ask` but does not act on it, and answering `deny` there instead was ruled out (NIM-44889, 2026-09-25).
 The Codex manifest therefore declares no `hooks`. Claude Code is recognised by `CLAUDE_PROJECT_DIR`,
 which it sets for hooks and Codex does not; `CLAUDE_PLUGIN_ROOT` cannot be used because Codex sets
@@ -63,8 +63,7 @@ on the hook's own prompt. When it asks, it stores the call's `tool_use_id` in
 PostToolUseFailure, for an op that failed after approval), which Claude fires only after a Yes, and
 remembers the tool if the rule was missing at the prompt and is present now. After a No no post hook
 runs (checked live on 2.1.283), so a rule added later in /permissions, in auto mode or by another
-prompt is never taken for option 2. Every PreToolUse call to either server, auto and bypass
-included, drops the tool from `remembered` when its rule is missing, so removing the rule always
+prompt is never taken for option 2. Every PreToolUse call to either server drops the tool from `remembered` when its rule is missing, so removing the rule always
 brings the prompt back. Gap: another prompt (a second session, or a parallel call in this one)
 answered while ours is open. A rule that already existed is not honoured, or allowing a read would
 switch the guard off.
