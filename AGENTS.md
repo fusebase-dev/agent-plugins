@@ -56,6 +56,13 @@ Claude Code gets `permissionDecision: "ask"`, except in auto mode and bypass per
 The Codex manifest therefore declares no `hooks`. Claude Code is recognised by `CLAUDE_PROJECT_DIR`,
 which it sets for hooks and Codex does not; `CLAUDE_PLUGIN_ROOT` cannot be used because Codex sets
 it as an alias. Never answer `allow`: it means "execute" and skips the host's own approval flow.
+"Yes, and don't ask again" on the hook's prompt writes the tool name to the project
+`.claude/settings.local.json` allow list. The hook honours that rule only when it appeared right
+after its own prompt: it records the tool it asked about in `$CLAUDE_PLUGIN_DATA/dont-ask-again.json`
+and checks the rule on the next call to either server, before that call's own prompt. A rule that
+already existed (Claude's prompt for a harmless call writes the same one) is not honoured, or
+allowing a read would switch the guard off. Without `CLAUDE_PLUGIN_DATA`, or when that state cannot
+be read or written, the hook asks.
 A malformed payload exits silently too, because a hook that throws must not be able to block a
 tool call.
 

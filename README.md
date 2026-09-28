@@ -93,7 +93,12 @@ arguments you are approving. Each argument is listed by its full path, for examp
 lists are shortened, and the request says how much was left out. Every other call, including every
 read, passes through untouched.
 
-In **Claude Code** you get the usual permission prompt and choose.
+In **Claude Code** you get the usual permission prompt and choose. Pick **Yes, and don't ask
+again** and irreversible calls to that server are no longer asked about in this project. To be
+asked again, remove the rule with `/permissions` (it is saved in `.claude/settings.local.json`).
+One exception: if you had already allowed that tool before, for example on a prompt for an
+ordinary read, the choice cannot be told apart from a plain Yes, and the hook keeps asking.
+Remove the rule once and pick the option on the hook's prompt.
 
 To stop being asked, switch Claude Code to auto mode or bypass permissions (Shift+Tab, or start it
 with `--dangerously-skip-permissions`). The hook then stays silent and Claude's own setting decides,

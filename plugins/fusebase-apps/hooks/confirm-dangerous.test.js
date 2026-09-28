@@ -3,6 +3,8 @@
 const assert = require("node:assert");
 const { execFileSync } = require("node:child_process");
 const { join } = require("node:path");
+const fs = require("node:fs");
+const os = require("node:os");
 
 const HOOK = join(__dirname, "confirm-dangerous.js");
 const CLAUDE = { CLAUDE_PLUGIN_ROOT: "/plugins/fusebase-apps", CLAUDE_PROJECT_DIR: "/work/app" };
@@ -85,5 +87,41 @@ assert.ok(full.permissionDecisionReason.includes(sql));
 // Malformed input never blocks the call.
 assert.strictEqual(run("not json", CLAUDE), null);
 assert.strictEqual(run({ tool_name: "mcp__fusebase-gate__tool_call" }, CLAUDE), null);
+
+// "Yes, and don't ask again" on the hook's prompt writes an allow rule; from then on the hook
+// stays silent for that tool in that project, until the rule is removed.
+const tmp = fs.mkdtempSync(join(os.tmpdir(), "confirm-dangerous-"));
+const project = join(tmp, "app");
+fs.mkdirSync(join(project, ".claude"), { recursive: true });
+const setRules = (allow) =>
+  fs.writeFileSync(join(project, ".claude", "settings.local.json"), JSON.stringify({ permissions: { allow } }));
+const WITH_DATA = { ...CLAUDE, CLAUDE_PROJECT_DIR: project, CLAUDE_PLUGIN_DATA: join(tmp, "data") };
+const confirmed = toolCall({ fileId: "f1", confirm: true });
+const read = toolCall({ fileId: "f1" });
+const TOOL = "mcp__fusebase-gate__tool_call";
+
+setRules([]);
+assert.strictEqual(run(confirmed, WITH_DATA).permissionDecision, "ask");
+setRules([TOOL]); // the person picked "Yes, and don't ask again"
+assert.strictEqual(run(confirmed, WITH_DATA), null);
+assert.strictEqual(run(confirmed, WITH_DATA), null);
+// Another project and the other server are still asked.
+assert.strictEqual(run(confirmed, { ...WITH_DATA, CLAUDE_PROJECT_DIR: join(tmp, "other") }).permissionDecision, "ask");
+assert.strictEqual(run(perOpCall({ databaseId: "d1", confirm: true }), WITH_DATA).permissionDecision, "ask");
+// Removing the rule brings the prompt back, and it is not remembered any more.
+setRules([]);
+assert.strictEqual(run(confirmed, WITH_DATA).permissionDecision, "ask");
+run(read, WITH_DATA); // plain "Yes": the next call sees no rule
+setRules([TOOL]); // then "don't ask again" on Claude's own prompt for a harmless call
+assert.strictEqual(run(confirmed, WITH_DATA).permissionDecision, "ask");
+// With the rule already there, the choice cannot be seen, so the hook keeps asking.
+assert.strictEqual(run(confirmed, WITH_DATA).permissionDecision, "ask");
+
+// Without a data dir, or with one that cannot be written, the hook keeps asking.
+setRules([TOOL]);
+assert.strictEqual(run(confirmed, { ...WITH_DATA, CLAUDE_PLUGIN_DATA: "" }).permissionDecision, "ask");
+fs.writeFileSync(join(tmp, "file"), "");
+assert.strictEqual(run(confirmed, { ...WITH_DATA, CLAUDE_PLUGIN_DATA: join(tmp, "file", "data") }).permissionDecision, "ask");
+fs.rmSync(tmp, { recursive: true, force: true });
 
 console.log("confirm-dangerous: all checks passed");

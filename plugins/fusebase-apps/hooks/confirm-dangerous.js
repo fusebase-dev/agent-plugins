@@ -8,6 +8,9 @@
 // Only `confirm: true` is looked at, never a list of operation ids, so the hook stays
 // correct when the servers flag more operations.
 
+const fs = require("node:fs");
+const path = require("node:path");
+
 // Long enough for a full SQL statement, the thing the person has to read.
 // The caps only stop a bulk payload (thousands of rows) from burying the prompt.
 const MAX_VALUE_CHARS = 1000;
@@ -54,6 +57,61 @@ function summarise(args) {
   return lines.length === 0 ? "No arguments." : lines.join(", ");
 }
 
+function readJson(file) {
+  try {
+    return JSON.parse(fs.readFileSync(file, "utf8"));
+  } catch {
+    return undefined;
+  }
+}
+
+// Claude's "Yes, and don't ask again" writes the tool name here.
+function allowedInProject(toolName) {
+  const file = path.join(process.env.CLAUDE_PROJECT_DIR, ".claude", "settings.local.json");
+  const rules = readJson(file)?.permissions?.allow;
+  return Array.isArray(rules) && rules.includes(toolName);
+}
+
+// "Don't ask again" must count only when it was picked on this hook's prompt. The same allow
+// rule also comes from Claude's own prompt for a harmless call, and honouring that would
+// switch the guard off for anyone who allowed reads. So the hook remembers the tool it asked
+// about (`pending`) and, on the next call to either server, checks whether the rule appeared
+// since. Every call to that tool passes this hook before its own prompt, so the only prompt
+// in between was ours.
+// ponytail: if the rule already existed when the hook asked, the choice writes nothing and
+// cannot be seen, so the person is asked every time until they remove that rule.
+function dontAskAgain(toolName, confirmed) {
+  if (!process.env.CLAUDE_PLUGIN_DATA) return false;
+  const file = path.join(process.env.CLAUDE_PLUGIN_DATA, "dont-ask-again.json");
+  const all = readJson(file) ?? {};
+  const project = all[process.env.CLAUDE_PROJECT_DIR] ?? { remembered: [] };
+  const before = JSON.stringify(project);
+
+  if (project.pending) {
+    if (allowedInProject(project.pending) && !project.remembered.includes(project.pending)) {
+      project.remembered.push(project.pending);
+    }
+    delete project.pending;
+  }
+  let silent = false;
+  if (confirmed) {
+    if (!allowedInProject(toolName)) {
+      // Removing the rule (/permissions) brings the prompt back.
+      project.remembered = project.remembered.filter((t) => t !== toolName);
+      project.pending = toolName;
+    } else {
+      silent = project.remembered.includes(toolName);
+    }
+  }
+
+  if (JSON.stringify(project) !== before) {
+    all[process.env.CLAUDE_PROJECT_DIR] = project;
+    fs.mkdirSync(process.env.CLAUDE_PLUGIN_DATA, { recursive: true });
+    fs.writeFileSync(file, JSON.stringify(all, null, 2));
+  }
+  return silent;
+}
+
 function decide(event) {
   // Only Claude Code can ask the person, and it sets CLAUDE_PROJECT_DIR for hooks. Codex
   // sets CLAUDE_PLUGIN_ROOT as an alias but not this one. Elsewhere the hook stays out of
@@ -67,7 +125,15 @@ function decide(event) {
   const input = event.tool_input ?? {};
   // `tool_call` nests the operation arguments under `args`; a per-op tool passes them directly.
   const args = input.args && typeof input.args === "object" ? input.args : input;
-  if (input.confirm !== true && args.confirm !== true) return;
+  const confirmed = input.confirm === true || args.confirm === true;
+  let remembered = false;
+  try {
+    remembered = dontAskAgain(toolName, confirmed);
+  } catch {
+    // Broken or unwritable state must not skip the prompt, as the top-level catch would.
+  }
+  // Silent here means Claude applies the person's own allow rule, as for any other tool.
+  if (remembered || !confirmed) return;
 
   const parts = toolName.split("__");
   const server = parts[1] || "fusebase";
