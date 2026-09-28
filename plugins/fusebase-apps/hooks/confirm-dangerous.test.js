@@ -89,39 +89,77 @@ assert.strictEqual(run("not json", CLAUDE), null);
 assert.strictEqual(run({ tool_name: "mcp__fusebase-gate__tool_call" }, CLAUDE), null);
 
 // "Yes, and don't ask again" on the hook's prompt writes an allow rule; from then on the hook
-// stays silent for that tool in that project, until the rule is removed.
+// stays silent for that tool in that project, until the rule is removed. The choice is read
+// after the call, from the post hook Claude runs only when the person said Yes.
 const tmp = fs.mkdtempSync(join(os.tmpdir(), "confirm-dangerous-"));
 const project = join(tmp, "app");
 fs.mkdirSync(join(project, ".claude"), { recursive: true });
 const setRules = (allow) =>
   fs.writeFileSync(join(project, ".claude", "settings.local.json"), JSON.stringify({ permissions: { allow } }));
 const WITH_DATA = { ...CLAUDE, CLAUDE_PROJECT_DIR: project, CLAUDE_PLUGIN_DATA: join(tmp, "data") };
-const confirmed = toolCall({ fileId: "f1", confirm: true });
-const read = toolCall({ fileId: "f1" });
 const TOOL = "mcp__fusebase-gate__tool_call";
+let nextId = 0;
+const confirmedCall = () => ({ ...toolCall({ fileId: "f1", confirm: true }), hook_event_name: "PreToolUse", tool_use_id: `toolu_${++nextId}` });
+const after = (call, env = WITH_DATA) => run({ ...call, hook_event_name: "PostToolUse" }, env);
+const pre = (call, env = WITH_DATA) => run(call, env)?.permissionDecision ?? null;
 
 setRules([]);
-assert.strictEqual(run(confirmed, WITH_DATA).permissionDecision, "ask");
+let call = confirmedCall();
+assert.strictEqual(pre(call), "ask");
 setRules([TOOL]); // the person picked "Yes, and don't ask again"
-assert.strictEqual(run(confirmed, WITH_DATA), null);
-assert.strictEqual(run(confirmed, WITH_DATA), null);
+assert.strictEqual(after(call), null);
+assert.strictEqual(pre(confirmedCall()), null);
+assert.strictEqual(pre(confirmedCall()), null);
 // Another project and the other server are still asked.
-assert.strictEqual(run(confirmed, { ...WITH_DATA, CLAUDE_PROJECT_DIR: join(tmp, "other") }).permissionDecision, "ask");
-assert.strictEqual(run(perOpCall({ databaseId: "d1", confirm: true }), WITH_DATA).permissionDecision, "ask");
+assert.strictEqual(pre(confirmedCall(), { ...WITH_DATA, CLAUDE_PROJECT_DIR: join(tmp, "other") }), "ask");
+assert.strictEqual(pre({ ...perOpCall({ databaseId: "d1", confirm: true }), tool_use_id: "toolu_db" }), "ask");
 // Removing the rule brings the prompt back, and it is not remembered any more.
 setRules([]);
-assert.strictEqual(run(confirmed, WITH_DATA).permissionDecision, "ask");
-run(read, WITH_DATA); // plain "Yes": the next call sees no rule
+call = confirmedCall();
+assert.strictEqual(pre(call), "ask");
+after(call); // plain "Yes": no rule written
 setRules([TOOL]); // then "don't ask again" on Claude's own prompt for a harmless call
-assert.strictEqual(run(confirmed, WITH_DATA).permissionDecision, "ask");
+assert.strictEqual(pre(confirmedCall()), "ask");
 // With the rule already there, the choice cannot be seen, so the hook keeps asking.
-assert.strictEqual(run(confirmed, WITH_DATA).permissionDecision, "ask");
+call = confirmedCall();
+assert.strictEqual(pre(call), "ask");
+after(call);
+assert.strictEqual(pre(confirmedCall()), "ask");
+
+// A rule that did not come from the hook's prompt never switches it off (CR round 7).
+const fresh = () => {
+  fs.rmSync(join(tmp, "data"), { recursive: true, force: true });
+  setRules([]);
+};
+// 1. No on the hook's prompt, then the tool allowed in /permissions.
+fresh();
+assert.strictEqual(pre(confirmedCall()), "ask");
+setRules([TOOL]);
+assert.strictEqual(pre(confirmedCall()), "ask");
+// 2. No, then auto mode: a read runs with no prompt and the rule is written meanwhile.
+fresh();
+assert.strictEqual(pre(confirmedCall()), "ask");
+const autoRead = { ...toolCall({ fileId: "f1" }), permission_mode: "auto", tool_use_id: "toolu_auto" };
+run(autoRead, WITH_DATA);
+setRules([TOOL]);
+after(autoRead);
+assert.strictEqual(pre(confirmedCall()), "ask");
+// 3. Two sessions: B's read gets "don't ask again" while A's hook prompt is open, then A says No.
+fresh();
+const sessionBRead = { ...toolCall({ fileId: "f1" }), tool_use_id: "toolu_b" };
+run(sessionBRead, WITH_DATA);
+assert.strictEqual(pre(confirmedCall()), "ask");
+setRules([TOOL]);
+after(sessionBRead);
+assert.strictEqual(pre(confirmedCall()), "ask");
 
 // Without a data dir, or with one that cannot be written, the hook keeps asking.
 setRules([TOOL]);
-assert.strictEqual(run(confirmed, { ...WITH_DATA, CLAUDE_PLUGIN_DATA: "" }).permissionDecision, "ask");
+assert.strictEqual(pre(confirmedCall(), { ...WITH_DATA, CLAUDE_PLUGIN_DATA: "" }), "ask");
 fs.writeFileSync(join(tmp, "file"), "");
-assert.strictEqual(run(confirmed, { ...WITH_DATA, CLAUDE_PLUGIN_DATA: join(tmp, "file", "data") }).permissionDecision, "ask");
+assert.strictEqual(pre(confirmedCall(), { ...WITH_DATA, CLAUDE_PLUGIN_DATA: join(tmp, "file", "data") }), "ask");
+// The post hook never answers anything, even for a confirmed call.
+assert.strictEqual(after(confirmedCall()), null);
 fs.rmSync(tmp, { recursive: true, force: true });
 
 console.log("confirm-dangerous: all checks passed");

@@ -57,12 +57,15 @@ The Codex manifest therefore declares no `hooks`. Claude Code is recognised by `
 which it sets for hooks and Codex does not; `CLAUDE_PLUGIN_ROOT` cannot be used because Codex sets
 it as an alias. Never answer `allow`: it means "execute" and skips the host's own approval flow.
 "Yes, and don't ask again" on the hook's prompt writes the tool name to the project
-`.claude/settings.local.json` allow list. The hook honours that rule only when it appeared right
-after its own prompt: it records the tool it asked about in `$CLAUDE_PLUGIN_DATA/dont-ask-again.json`
-and checks the rule on the next call to either server, before that call's own prompt. A rule that
-already existed (Claude's prompt for a harmless call writes the same one) is not honoured, or
-allowing a read would switch the guard off. Without `CLAUDE_PLUGIN_DATA`, or when that state cannot
-be read or written, the hook asks.
+`.claude/settings.local.json` allow list. The hook honours that rule only when the person picked it
+on the hook's own prompt. When it asks, it stores the call's `tool_use_id` in
+`$CLAUDE_PLUGIN_DATA/dont-ask-again.json`; the same script runs as PostToolUse (and
+PostToolUseFailure, for an op that failed after approval), which Claude fires only after a Yes, and
+remembers the tool if the rule was missing at the prompt and is present now. After a No no post hook
+runs (checked live on 2.1.283), so a rule added later in /permissions, in auto mode or by another
+prompt is never taken for option 2. Gap: a second session answering its own prompt while ours is
+open. A rule that already existed is not honoured, or allowing a read would switch the guard off.
+Without `CLAUDE_PLUGIN_DATA`, or when that state cannot be read or written, the hook asks.
 A malformed payload exits silently too, because a hook that throws must not be able to block a
 tool call.
 

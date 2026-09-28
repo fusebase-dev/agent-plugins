@@ -73,43 +73,47 @@ function allowedInProject(toolName) {
 }
 
 // "Don't ask again" must count only when it was picked on this hook's prompt. The same allow
-// rule also comes from Claude's own prompt for a harmless call, and honouring that would
-// switch the guard off for anyone who allowed reads. So the hook remembers the tool it asked
-// about (`pending`) and, on the next call to either server, checks whether the rule appeared
-// since. Every call to that tool passes this hook before its own prompt, so the only prompt
-// in between was ours.
-// ponytail: if the rule already existed when the hook asked, the choice writes nothing and
-// cannot be seen, so the person is asked every time until they remove that rule.
-function dontAskAgain(toolName, confirmed) {
-  if (!process.env.CLAUDE_PLUGIN_DATA) return false;
+// rule also comes from Claude's own prompt for a harmless call or from /permissions, and
+// honouring that would switch the guard off for anyone who allowed reads. So when the hook asks,
+// it records the call's tool use id (`pending`), and the answer is read after the call: the
+// post hook runs only when the person said Yes to that call, and a rule that was missing at the
+// prompt and is present now can only be option 2. After a No nothing runs and nothing is kept.
+// ponytail: a second session answering its own prompt while ours is open can still write the
+// rule in between; if the rule already existed when the hook asked, the choice writes nothing
+// and cannot be seen, so the person is asked every time until they remove that rule.
+function withState(update) {
+  if (!process.env.CLAUDE_PLUGIN_DATA) return undefined;
   const file = path.join(process.env.CLAUDE_PLUGIN_DATA, "dont-ask-again.json");
   const all = readJson(file) ?? {};
   const project = all[process.env.CLAUDE_PROJECT_DIR] ?? { remembered: [] };
   const before = JSON.stringify(project);
-
-  if (project.pending) {
-    if (allowedInProject(project.pending) && !project.remembered.includes(project.pending)) {
-      project.remembered.push(project.pending);
-    }
-    delete project.pending;
-  }
-  let silent = false;
-  if (confirmed) {
-    if (!allowedInProject(toolName)) {
-      // Removing the rule (/permissions) brings the prompt back.
-      project.remembered = project.remembered.filter((t) => t !== toolName);
-      project.pending = toolName;
-    } else {
-      silent = project.remembered.includes(toolName);
-    }
-  }
-
+  const result = update(project);
   if (JSON.stringify(project) !== before) {
     all[process.env.CLAUDE_PROJECT_DIR] = project;
     fs.mkdirSync(process.env.CLAUDE_PLUGIN_DATA, { recursive: true });
     fs.writeFileSync(file, JSON.stringify(all, null, 2));
   }
-  return silent;
+  return result;
+}
+
+// Before a confirmed call: true when the person already chose not to be asked for this tool.
+function remembered(toolName, toolUseId) {
+  return withState((project) => {
+    if (allowedInProject(toolName)) return project.remembered.includes(toolName);
+    // Removing the rule (/permissions) brings the prompt back.
+    project.remembered = project.remembered.filter((t) => t !== toolName);
+    project.pending = toolUseId;
+    return false;
+  });
+}
+
+// After a call the person allowed.
+function answered(toolName, toolUseId) {
+  withState((project) => {
+    if (!toolUseId || project.pending !== toolUseId) return;
+    delete project.pending;
+    if (allowedInProject(toolName) && !project.remembered.includes(toolName)) project.remembered.push(toolName);
+  });
 }
 
 function decide(event) {
@@ -117,23 +121,25 @@ function decide(event) {
   // sets CLAUDE_PLUGIN_ROOT as an alias but not this one. Elsewhere the hook stays out of
   // the way: refusing calls there was ruled out, and the server still demands confirm.
   if (!process.env.CLAUDE_PROJECT_DIR) return;
+  const toolName = typeof event.tool_name === "string" ? event.tool_name : "";
+  if (event.hook_event_name === "PostToolUse" || event.hook_event_name === "PostToolUseFailure") {
+    answered(toolName, event.tool_use_id);
+    return;
+  }
   // The person chose not to be asked (auto mode or bypass permissions), so Claude's own
   // setting decides, as for any other tool. The server still demands confirm and logs the call.
   if (event.permission_mode === "auto" || event.permission_mode === "bypassPermissions") return;
 
-  const toolName = typeof event.tool_name === "string" ? event.tool_name : "";
   const input = event.tool_input ?? {};
   // `tool_call` nests the operation arguments under `args`; a per-op tool passes them directly.
   const args = input.args && typeof input.args === "object" ? input.args : input;
-  const confirmed = input.confirm === true || args.confirm === true;
-  let remembered = false;
+  if (input.confirm !== true && args.confirm !== true) return;
   try {
-    remembered = dontAskAgain(toolName, confirmed);
+    // Silent here means Claude applies the person's own allow rule, as for any other tool.
+    if (remembered(toolName, event.tool_use_id)) return;
   } catch {
     // Broken or unwritable state must not skip the prompt, as the top-level catch would.
   }
-  // Silent here means Claude applies the person's own allow rule, as for any other tool.
-  if (remembered || !confirmed) return;
 
   const parts = toolName.split("__");
   const server = parts[1] || "fusebase";

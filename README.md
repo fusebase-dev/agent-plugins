@@ -98,7 +98,9 @@ again** and irreversible calls to that server are no longer asked about in this 
 asked again, remove the rule with `/permissions` (it is saved in `.claude/settings.local.json`).
 One exception: if you had already allowed that tool before, for example on a prompt for an
 ordinary read, the choice cannot be told apart from a plain Yes, and the hook keeps asking.
-Remove the rule once and pick the option on the hook's prompt.
+Remove the rule once and pick the option on the hook's prompt. Only a choice made on the hook's
+own prompt counts: a rule you add in `/permissions` does not switch the hook off. One narrow gap:
+two Claude Code sessions in the same project answering prompts at the same moment.
 
 To stop being asked, switch Claude Code to auto mode or bypass permissions (Shift+Tab, or start it
 with `--dangerously-skip-permissions`). The hook then stays silent and Claude's own setting decides,
