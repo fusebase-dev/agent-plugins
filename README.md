@@ -93,7 +93,20 @@ arguments you are approving. Each argument is listed by its full path, for examp
 lists are shortened, and the request says how much was left out. Every other call, including every
 read, passes through untouched.
 
-In **Claude Code** you get the usual permission prompt and choose.
+In **Claude Code** you get the usual permission prompt and choose. Pick **Yes, and don't ask
+again** and irreversible calls to that server are no longer asked about in this project. To be
+asked again, remove the rule with `/permissions` (it is saved in `.claude/settings.local.json`).
+One exception: if you had already allowed that tool before, for example on a prompt for an
+ordinary read, the choice cannot be told apart from a plain Yes, and the hook keeps asking.
+Remove the rule once and pick the option on the hook's prompt. Only a choice made on the hook's
+own prompt counts: a rule you add in `/permissions` does not switch the hook off. One narrow gap:
+another prompt answered while the hook's prompt is open (a second session in the same project,
+or a parallel call in the same session).
+
+The hook asks in every permission mode, auto mode included, and **Yes, and don't ask again** is
+the way to stop being asked. Only bypass permissions (`--dangerously-skip-permissions`) skips the
+prompt: the hook stays silent there, as Claude does for every other tool. The servers still demand
+`confirm: true` and still log every irreversible call, whatever mode you use.
 
 **Codex** cannot prompt from a hook yet, so the hook does nothing there. The servers still refuse
 an irreversible operation without `confirm: true`, and whether a confirmed call runs is up to
