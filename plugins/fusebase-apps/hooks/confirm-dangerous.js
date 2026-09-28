@@ -59,6 +59,9 @@ function decide(event) {
   // sets CLAUDE_PLUGIN_ROOT as an alias but not this one. Elsewhere the hook stays out of
   // the way: refusing calls there was ruled out, and the server still demands confirm.
   if (!process.env.CLAUDE_PROJECT_DIR) return;
+  // The person chose not to be asked (auto mode or bypass permissions), so Claude's own
+  // setting decides, as for any other tool. The server still demands confirm and logs the call.
+  if (event.permission_mode === "auto" || event.permission_mode === "bypassPermissions") return;
 
   const toolName = typeof event.tool_name === "string" ? event.tool_name : "";
   const input = event.tool_input ?? {};

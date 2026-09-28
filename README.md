@@ -95,6 +95,11 @@ read, passes through untouched.
 
 In **Claude Code** you get the usual permission prompt and choose.
 
+To stop being asked, switch Claude Code to auto mode or bypass permissions (Shift+Tab, or start it
+with `--dangerously-skip-permissions`). The hook then stays silent and Claude's own setting decides,
+as it does for every other tool. Switch back and the prompts return. The servers still demand
+`confirm: true` and still log every irreversible call, whatever mode you use.
+
 **Codex** cannot prompt from a hook yet, so the hook does nothing there. The servers still refuse
 an irreversible operation without `confirm: true`, and whether a confirmed call runs is up to
 Codex's own approval settings. Codex may still list the hook under `/hooks` and ask you to trust

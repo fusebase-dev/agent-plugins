@@ -50,7 +50,8 @@ Component directories (`skills/`, `agents/`, `hooks/`) live at the plugin root, 
 rather than to a generated app. It keys on `confirm: true` in the tool input and on nothing else, so
 it never needs updating when fusebase-gate or dashboard-service flags another operation as dangerous.
 
-Claude Code gets `permissionDecision: "ask"`. Everywhere else the hook does nothing: Codex parses
+Claude Code gets `permissionDecision: "ask"`, except in auto mode and bypass permissions (`permission_mode`
+`auto` / `bypassPermissions`), where the person opted out of prompts and the hook stays silent. Everywhere else the hook does nothing: Codex parses
 `ask` but does not act on it, and answering `deny` there instead was ruled out (NIM-44889, 2026-09-25).
 The Codex manifest therefore declares no `hooks`. Claude Code is recognised by `CLAUDE_PROJECT_DIR`,
 which it sets for hooks and Codex does not; `CLAUDE_PLUGIN_ROOT` cannot be used because Codex sets
