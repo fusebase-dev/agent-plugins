@@ -78,9 +78,10 @@ function allowedInProject(toolName) {
 // it records the call's tool use id (`pending`), and the answer is read after the call: the
 // post hook runs only when the person said Yes to that call, and a rule that was missing at the
 // prompt and is present now can only be option 2. After a No nothing runs and nothing is kept.
-// ponytail: a second session answering its own prompt while ours is open can still write the
-// rule in between; if the rule already existed when the hook asked, the choice writes nothing
-// and cannot be seen, so the person is asked every time until they remove that rule.
+// ponytail: another prompt answered while ours is open (a second session, or a parallel call in
+// this one) can still write the rule in between; if the rule already existed when the hook asked,
+// the choice writes nothing and cannot be seen, so the person is asked every time until they
+// remove that rule.
 function withState(update) {
   if (!process.env.CLAUDE_PLUGIN_DATA) return undefined;
   const file = path.join(process.env.CLAUDE_PLUGIN_DATA, "dont-ask-again.json");
@@ -96,12 +97,18 @@ function withState(update) {
   return result;
 }
 
+// Removing the rule (/permissions) brings the prompt back. Checked on every call, not only
+// confirmed ones, so a rule re-added later on a read's prompt is not taken for the old answer.
+function forgetIfRuleRemoved(toolName) {
+  withState((project) => {
+    if (!allowedInProject(toolName)) project.remembered = project.remembered.filter((t) => t !== toolName);
+  });
+}
+
 // Before a confirmed call: true when the person already chose not to be asked for this tool.
 function remembered(toolName, toolUseId) {
   return withState((project) => {
     if (allowedInProject(toolName)) return project.remembered.includes(toolName);
-    // Removing the rule (/permissions) brings the prompt back.
-    project.remembered = project.remembered.filter((t) => t !== toolName);
     project.pending = toolUseId;
     return false;
   });
@@ -125,6 +132,11 @@ function decide(event) {
   if (event.hook_event_name === "PostToolUse" || event.hook_event_name === "PostToolUseFailure") {
     answered(toolName, event.tool_use_id);
     return;
+  }
+  try {
+    forgetIfRuleRemoved(toolName);
+  } catch {
+    // Broken state: a confirmed call below fails the same way and is asked.
   }
   // The person chose not to be asked (auto mode or bypass permissions), so Claude's own
   // setting decides, as for any other tool. The server still demands confirm and logs the call.

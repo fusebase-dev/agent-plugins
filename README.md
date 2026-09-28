@@ -100,7 +100,8 @@ One exception: if you had already allowed that tool before, for example on a pro
 ordinary read, the choice cannot be told apart from a plain Yes, and the hook keeps asking.
 Remove the rule once and pick the option on the hook's prompt. Only a choice made on the hook's
 own prompt counts: a rule you add in `/permissions` does not switch the hook off. One narrow gap:
-two Claude Code sessions in the same project answering prompts at the same moment.
+another prompt answered while the hook's prompt is open (a second session in the same project,
+or a parallel call in the same session).
 
 To stop being asked, switch Claude Code to auto mode or bypass permissions (Shift+Tab, or start it
 with `--dangerously-skip-permissions`). The hook then stays silent and Claude's own setting decides,

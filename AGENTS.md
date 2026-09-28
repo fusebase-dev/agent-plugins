@@ -63,8 +63,11 @@ on the hook's own prompt. When it asks, it stores the call's `tool_use_id` in
 PostToolUseFailure, for an op that failed after approval), which Claude fires only after a Yes, and
 remembers the tool if the rule was missing at the prompt and is present now. After a No no post hook
 runs (checked live on 2.1.283), so a rule added later in /permissions, in auto mode or by another
-prompt is never taken for option 2. Gap: a second session answering its own prompt while ours is
-open. A rule that already existed is not honoured, or allowing a read would switch the guard off.
+prompt is never taken for option 2. Every PreToolUse call to either server, auto and bypass
+included, drops the tool from `remembered` when its rule is missing, so removing the rule always
+brings the prompt back. Gap: another prompt (a second session, or a parallel call in this one)
+answered while ours is open. A rule that already existed is not honoured, or allowing a read would
+switch the guard off.
 Without `CLAUDE_PLUGIN_DATA`, or when that state cannot be read or written, the hook asks.
 A malformed payload exits silently too, because a hook that throws must not be able to block a
 tool call.

@@ -152,6 +152,29 @@ assert.strictEqual(pre(confirmedCall()), "ask");
 setRules([TOOL]);
 after(sessionBRead);
 assert.strictEqual(pre(confirmedCall()), "ask");
+// 4. Remembered, rule removed, then "don't ask again" on Claude's prompt for a read (CR round 8).
+fresh();
+call = confirmedCall();
+assert.strictEqual(pre(call), "ask");
+setRules([TOOL]);
+after(call);
+assert.strictEqual(pre(confirmedCall()), null);
+setRules([]);
+const read = { ...toolCall({ fileId: "f1" }), tool_use_id: "toolu_read" };
+run(read, WITH_DATA);
+setRules([TOOL]);
+after(read);
+assert.strictEqual(pre(confirmedCall()), "ask");
+// 5. The same with the rule removed while in auto mode.
+fresh();
+call = confirmedCall();
+pre(call);
+setRules([TOOL]);
+after(call);
+setRules([]);
+run(inMode("auto"), WITH_DATA);
+setRules([TOOL]);
+assert.strictEqual(pre(confirmedCall()), "ask");
 
 // Without a data dir, or with one that cannot be written, the hook keeps asking.
 setRules([TOOL]);
