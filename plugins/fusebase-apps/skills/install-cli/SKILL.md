@@ -27,6 +27,19 @@ If it exits reporting a previous install it cannot remove, relay its message. Th
 
 If `$HOME/.local/bin` was not already on `PATH`, `fusebase` will not resolve until the shell restarts. Use `~/.local/bin/fusebase` for the rest of this session.
 
+#### Sandboxes with a fresh home directory per session
+
+Some agent platforms, Claude Cowork among them, give every session a new, empty home directory on a small shared disk. The CLI is about 100 MB, so installing it into each home fills that disk within weeks. If your home directory is new each session and a folder persists across sessions (a mounted or connected folder), keep the CLI and its login there instead. Ask the user which folder to use if it is not obvious.
+
+```
+export FUSEBASE_INSTALL_DIR=<shared folder>/fusebase/bin
+export FUSEBASE_CONFIG_DIR=<shared folder>/fusebase/config
+export PATH="$FUSEBASE_INSTALL_DIR:$PATH"
+curl -sSL https://thefusebase.com/fusebase-cli/install-fusebase.sh | FUSEBASE_AGENT=1 sh
+```
+
+Set the same three variables at the start of every later session. The installer then finds the binary in the shared folder and only checks for an update instead of downloading it again, and `fusebase auth` is remembered. Never put the shared folder inside the home directory.
+
 
 ### Windows
 
