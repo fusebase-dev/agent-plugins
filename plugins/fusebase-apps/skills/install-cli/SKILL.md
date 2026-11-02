@@ -8,7 +8,7 @@ description: Use when the fusebase CLI is missing, out of date, or not logged in
 
 Work through these steps in order and tell the user what you are doing as you go.
 
-**Note**: Linux arm64 has no build. If the user is on it, stop and say so.
+**Claude Cowork**: if `$HOME` matches `/sessions/rcw-*`, you are in Cowork. Use the Cowork section below instead of the macOS and Linux steps.
 
 Run the installer as given. If it fails, stop and report what it printed. Do not download the binary yourself or place it by hand: the installer owns where the CLI lives and how it updates, and working around it hides the failure and leaves a binary `fusebase update` will not replace.
 
@@ -26,6 +26,37 @@ This handles both cases. It installs to `$HOME/.local/bin` without elevation, ad
 If it exits reporting a previous install it cannot remove, relay its message. The user runs the one `sudo rm` line it prints, then you run the installer again.
 
 If `$HOME/.local/bin` was not already on `PATH`, `fusebase` will not resolve until the shell restarts. Use `~/.local/bin/fusebase` for the rest of this session.
+
+
+#### Claude Cowork
+
+Every Cowork chat gets a new, empty home, so a CLI installed there is lost and costs about 100 MB of shared disk each time. Keep the CLI and its login in a connected folder instead. Never install into the home, `/tmp` or `/var/tmp`.
+
+1. Look for an existing install:
+
+   ```
+   ls -d "$HOME"/mnt/*/.fusebase/bin/fusebase
+   ```
+
+   If it prints a path, use that install and go to step 4. Do not download anything.
+
+2. Otherwise choose the folder: run `ls -d "$HOME"/mnt/*/`. One folder: use it. Several: ask the user which one. None: ask the user to connect a folder, then start again.
+
+3. Install into `<folder>/.fusebase`, with `<folder>` as its absolute path:
+
+   ```
+   curl -sSL https://thefusebase.com/fusebase-cli/install-fusebase.sh | FUSEBASE_AGENT=1 FUSEBASE_INSTALL_DIR="<folder>/.fusebase/bin" FUSEBASE_CONFIG_DIR="<folder>/.fusebase/config" sh
+   ```
+
+   If `<folder>/.gitignore` exists and has no `.fusebase/` line, add one.
+
+4. Shell variables do not survive between your commands, so write the full prefix on every `fusebase` command for the rest of the session, including the ones in the steps below. With `<dir>` as the absolute path of `.fusebase`:
+
+   ```
+   FUSEBASE_CONFIG_DIR="<dir>/config" PATH="<dir>/bin:$PATH" "<dir>/bin/fusebase" <command>
+   ```
+
+   To update the CLI, run the same prefix with `update`.
 
 
 ### Windows
