@@ -30,27 +30,19 @@ If `$HOME/.local/bin` was not already on `PATH`, `fusebase` will not resolve unt
 
 #### Claude Cowork
 
-Every Cowork chat gets a new, empty home, so a CLI installed there is lost and costs about 100 MB of shared disk each time. Keep the CLI and its login in a connected folder instead. Never install into the home, `/tmp` or `/var/tmp`.
+Every Cowork chat gets a new, empty home, so a CLI installed there is lost and costs about 100 MB of shared disk each time. Keep the CLI and its login in the connected folder you are working in (it is under `$HOME/mnt/`), with `<dir>` as the absolute path of `<that folder>/.fusebase`. If no folder is connected, use the macOS and Linux steps above instead and skip this section. Never install into `/tmp` or `/var/tmp`.
 
-1. Look for an existing install:
+1. If `<dir>/bin/fusebase` exists, go to step 3. Do not download anything.
 
-   ```
-   ls -d "$HOME"/mnt/*/.fusebase/bin/fusebase
-   ```
-
-   If it prints a path, use that install and go to step 4. Do not download anything.
-
-2. Otherwise choose the folder: run `ls -d "$HOME"/mnt/*/`. One folder: use it. Several: ask the user which one. None: ask the user to connect a folder, then start again.
-
-3. Install into `<folder>/.fusebase`, with `<folder>` as its absolute path:
+2. Install it:
 
    ```
-   curl -sSL https://thefusebase.com/fusebase-cli/install-fusebase.sh | FUSEBASE_AGENT=1 FUSEBASE_INSTALL_DIR="<folder>/.fusebase/bin" FUSEBASE_CONFIG_DIR="<folder>/.fusebase/config" sh
+   curl -sSL https://thefusebase.com/fusebase-cli/install-fusebase.sh | FUSEBASE_AGENT=1 FUSEBASE_INSTALL_DIR="<dir>/bin" FUSEBASE_CONFIG_DIR="<dir>/config" sh
    ```
 
-   If `<folder>/.gitignore` exists and has no `.fusebase/` line, add one.
+   If the working folder has a `.gitignore` without a `.fusebase/` line, add one.
 
-4. Shell variables do not survive between your commands, so write the full prefix on every `fusebase` command for the rest of the session, including the ones in the steps below. With `<dir>` as the absolute path of `.fusebase`:
+3. Shell variables do not survive between your commands, so write the full prefix on every `fusebase` command for the rest of the session, including the ones in the steps below:
 
    ```
    FUSEBASE_CONFIG_DIR="<dir>/config" PATH="<dir>/bin:$PATH" "<dir>/bin/fusebase" <command>
