@@ -15,7 +15,8 @@ project has its own `AGENTS.md` and skills that cover everything after this poin
 
 ## Before you start
 
-Run `fusebase update` to check the CLI is installed and current.
+Run `fusebase update` to check the CLI is installed and current. Do not skip it: an older CLI
+has no `fusebase orgs list` command, and this skill needs it.
 
 - Command not found, or the update fails: load the `install-cli` skill, follow it, then come back
   here. It handles installation, Node and login on every platform.
@@ -27,6 +28,8 @@ Run `fusebase update` to check the CLI is installed and current.
 
 1. Decide which organisation to use. Run `fusebase orgs list --json`. With one organisation, use
    it. With several, show the titles and ask which one, then take its `id`.
+   If it fails with an unknown command or option error, an older `fusebase` comes earlier in PATH:
+   load `install-cli`, follow it, and retry. If it still fails, show the output of `which -a fusebase` and stop.
 
 2. Make sure the current dir is empty, since it's required by the app initialization command. If it's not empty, let the user know about it and suggest alternatives:
     - User clears the current directory (**never do it on your own, unless user explicitely asks for it**)
