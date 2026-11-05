@@ -63,7 +63,7 @@ active.
 
 ## What the plugin contributes
 
-Three skills, and nothing else. No hooks, no agents, no MCP server, and nothing written to your
+Three skills and one safety hook. No agents, no MCP server, and nothing written to your
 `CLAUDE.md` or `AGENTS.md`.
 
 | Skill | What it does |
@@ -72,8 +72,46 @@ Three skills, and nothing else. No hooks, no agents, no MCP server, and nothing 
 | `existing-fusebase-app` | Updates the CLI and the project's own agent instructions when you open an app that already exists. |
 | `install-cli` | Installs, updates and authenticates the FuseBase CLI. Loads only when the CLI is missing or out of date. |
 
+| Hook | What it does |
+| --- | --- |
+| `confirm-dangerous` | Claude Code only. Holds a FuseBase MCP call that confirms an irreversible operation until you approve it. |
+
 Installing the plugin installs nothing else. The CLI and the login happen the first time you
 actually ask for an app.
+
+## The confirmation hook
+
+FuseBase apps talk to two MCP servers, `fusebase-gate` and `fusebase-dashboards`. Those servers
+refuse an irreversible operation, such as dropping a data store or deleting a file, unless the call
+carries `confirm: true`. That protects you from an accident, but not from an agent that decides to
+confirm by itself.
+
+The hook closes that gap. Whenever a call to either server carries `confirm: true`, your agent has
+to stop and get your answer, and the request tells you which server, which operation and which
+arguments you are approving. Each argument is listed by its full path, for example
+`body.allowAll=true`, so a flag deep inside the request is not missed. Very long values and long
+lists are shortened, and the request says how much was left out. Every other call, including every
+read, passes through untouched.
+
+In **Claude Code** you get the usual permission prompt and choose. Pick **Yes, and don't ask
+again** and irreversible calls to that server are no longer asked about in this project. To be
+asked again, remove the rule with `/permissions` (it is saved in `.claude/settings.local.json`).
+One exception: if you had already allowed that tool before, for example on a prompt for an
+ordinary read, the choice cannot be told apart from a plain Yes, and the hook keeps asking.
+Remove the rule once and pick the option on the hook's prompt. Only a choice made on the hook's
+own prompt counts: a rule you add in `/permissions` does not switch the hook off. One narrow gap:
+another prompt answered while the hook's prompt is open (a second session in the same project,
+or a parallel call in the same session).
+
+The hook asks in every permission mode, auto mode included, and **Yes, and don't ask again** is
+the way to stop being asked. Only bypass permissions (`--dangerously-skip-permissions`) skips the
+prompt: the hook stays silent there, as Claude does for every other tool. The servers still demand
+`confirm: true` and still log every irreversible call, whatever mode you use.
+
+**Codex** cannot prompt from a hook yet, so the hook does nothing there. The servers still refuse
+an irreversible operation without `confirm: true`, and whether a confirmed call runs is up to
+Codex's own approval settings. Codex may still list the hook under `/hooks` and ask you to trust
+it; trusting it changes nothing.
 
 ## What it does to your machine
 

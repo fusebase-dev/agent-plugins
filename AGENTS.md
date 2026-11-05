@@ -29,6 +29,10 @@ plugins/fusebase-apps/
     create-app/SKILL.md         # when and how to create a FuseBase app
     existing-fusebase-app/SKILL.md  # update the CLI before working in an existing app
     install-cli/SKILL.md        # install, update and authenticate the CLI
+  hooks/
+    hooks.json                  # PreToolUse entry; Claude Code reads this path
+    confirm-dangerous.js        # holds a confirmed irreversible MCP call for the human
+    confirm-dangerous.test.js   # node hooks/confirm-dangerous.test.js, no dependencies
 docs/                       # internal planning material, gitignored, never published
 ```
 
@@ -39,6 +43,40 @@ under `~/.codex/.tmp/` rather than guessing.
 
 Component directories (`skills/`, `agents/`, `hooks/`) live at the plugin root, not inside
 `.claude-plugin/`. Getting this wrong fails silently.
+
+## The confirmation hook
+
+`hooks/confirm-dangerous.js` is authored here, not in `apps-cli`, because it belongs to the plugin
+rather than to a generated app. It keys on `confirm: true` in the tool input and on nothing else, so
+it never needs updating when fusebase-gate or dashboard-service flags another operation as dangerous.
+
+Claude Code gets `permissionDecision: "ask"` in every permission mode except bypass permissions
+(`permission_mode` `bypassPermissions`), where the person opted out of prompts and the hook stays
+silent. Auto mode asks (Claude honours it, checked live on 2.1.283); "don't ask again" is the opt-out. Everywhere else the hook does nothing: Codex parses
+`ask` but does not act on it, and answering `deny` there instead was ruled out (NIM-44889, 2026-09-25).
+The Codex manifest therefore declares no `hooks`. Claude Code is recognised by `CLAUDE_PROJECT_DIR`,
+which it sets for hooks and Codex does not; `CLAUDE_PLUGIN_ROOT` cannot be used because Codex sets
+it as an alias. Never answer `allow`: it means "execute" and skips the host's own approval flow.
+"Yes, and don't ask again" on the hook's prompt writes the tool name to the project
+`.claude/settings.local.json` allow list. The hook honours that rule only when the person picked it
+on the hook's own prompt. When it asks, it stores the call's `tool_use_id` in
+`$CLAUDE_PLUGIN_DATA/dont-ask-again.json`; the same script runs as PostToolUse (and
+PostToolUseFailure, for an op that failed after approval), which Claude fires only after a Yes, and
+remembers the tool if the rule was missing at the prompt and is present now. After a No no post hook
+runs (checked live on 2.1.283), so a rule added later in /permissions, in auto mode or by another
+prompt is never taken for option 2. Every PreToolUse call to either server drops the tool from `remembered` when its rule is missing, so removing the rule always
+brings the prompt back. Gap: another prompt (a second session, or a parallel call in this one)
+answered while ours is open. A rule that already existed is not honoured, or allowing a read would
+switch the guard off.
+Without `CLAUDE_PLUGIN_DATA`, or when that state cannot be read or written, the hook asks.
+A malformed payload exits silently too, because a hook that throws must not be able to block a
+tool call.
+
+The matcher assumes the standard MCP tool names, `mcp__fusebase-gate__*` and
+`mcp__fusebase-dashboards__*`, which is what `fusebase init` writes. A host configured to expose MCP
+tools under unprefixed names would not match.
+
+Run `node plugins/fusebase-apps/hooks/confirm-dangerous.test.js` after touching either file.
 
 ## Naming
 
