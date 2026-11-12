@@ -11,7 +11,7 @@ Work through these steps in order and tell the user what you are doing as you go
 First decide which case you are in. Check them in this order and take the first that matches:
 
 1. **Claude Cowork**: `CLAUDE_CODE_ENTRYPOINT` is `remote_cowork`, or `$HOME` matches `/sessions/rcw-*`. In section "1. Install or update", follow "Claude Cowork" instead of "macOS and Linux".
-2. **Claude Code on the web**: `CLAUDE_CODE_REMOTE` is `true`. Do not install anything. Tell the user: "The FuseBase CLI is not available in Claude Code on the web, because every session starts on a new machine and loses the CLI and its login. Use Claude Code on your computer, or Cowork with your project folder connected." Then stop.
+2. **Claude Code cloud session**: `CLAUDE_CODE_REMOTE` is `true`. The session runs on a cloud machine, whether the user started it from claude.ai, the desktop app or the mobile app. Do not install anything. Tell the user: "The FuseBase CLI is not available in Claude Code cloud sessions, because every session starts on a new machine and loses the CLI and its login. Start a local Claude Code session on your computer, or use Cowork with your project folder connected." Then stop.
 3. Otherwise you are on the user's own computer. In section "1. Install or update", follow the part for their OS.
 
 Run the installer as given. If it fails, stop and report what it printed. Do not download the binary yourself or place it by hand: the installer owns where the CLI lives and how it updates, and working around it hides the failure and leaves a binary `fusebase update` will not replace.
