@@ -10,9 +10,9 @@ Work through these steps in order and tell the user what you are doing as you go
 
 First decide which case you are in. Check them in this order and take the first that matches:
 
-1. **Claude Cowork**: `CLAUDE_CODE_ENTRYPOINT` is `remote_cowork`, or `$HOME` matches `/sessions/rcw-*`. In step 1, follow the Claude Cowork section instead of macOS and Linux.
-2. **Cloud session**, such as Claude Code on the web: `CLAUDE_CODE_REMOTE` is `true`. Do not install anything. Tell the user: "The FuseBase CLI is not available in cloud sessions, because every session starts on a new machine and loses the CLI and its login. Use Claude Code on your computer, or Cowork with your project folder connected." Then stop.
-3. Otherwise you are on the user's own computer. Follow step 1 for their OS.
+1. **Claude Cowork**: `CLAUDE_CODE_ENTRYPOINT` is `remote_cowork`, or `$HOME` matches `/sessions/rcw-*`. In section "1. Install or update", follow "Claude Cowork" instead of "macOS and Linux".
+2. **Claude Code on the web**: `CLAUDE_CODE_REMOTE` is `true`. Do not install anything. Tell the user: "The FuseBase CLI is not available in Claude Code on the web, because every session starts on a new machine and loses the CLI and its login. Use Claude Code on your computer, or Cowork with your project folder connected." Then stop.
+3. Otherwise you are on the user's own computer. In section "1. Install or update", follow the part for their OS.
 
 Run the installer as given. If it fails, stop and report what it printed. Do not download the binary yourself or place it by hand: the installer owns where the CLI lives and how it updates, and working around it hides the failure and leaves a binary `fusebase update` will not replace.
 
@@ -39,7 +39,7 @@ Cowork has two machines:
 - **Cloud VM**: a machine in the cloud. It is new and empty in every chat. Never install or run `fusebase` there.
 - **Local VM**: a Linux VM on the user's computer. The folders the user connected to the chat are under `$HOME/mnt/`. Install and run `fusebase` only here.
 
-Pick the shell that runs in the local VM. Use it for every command in this skill, steps 2 and 3 included, and for every `fusebase` command for the rest of the session:
+Pick the shell that runs in the local VM. Use it for every command in this skill, sections 2 and 3 included, and for every `fusebase` command for the rest of the session:
 
 1. Run `echo $HOME` in your `Bash` tool. If it prints `/sessions/rcw-<id>`, your `Bash` runs in the local VM. Use `Bash`.
 2. Otherwise your `Bash` runs in the cloud VM. Use the `mcp__remote-devices__device_bash` tool instead. Never use `Bash` for this work.
@@ -57,13 +57,13 @@ b. Otherwise install it:
 
    If the connected folder has a `.gitignore` without a `.fusebase/` line, add one.
 
-   If the download fails with `403 from proxy`, Cowork is blocking FuseBase. Tell the user: "Allow `thefusebase.com`, `public-api.thefusebase.com` and `app.nimbusweb.me` on the claude.ai website, not in the desktop app: Settings > Capabilities, or Organization settings > Capabilities on Team and Enterprise plans." Run the installer again once they confirm.
-
 c. Shell variables do not survive between your commands. For the rest of the session, write this full prefix on every `fusebase` command: in this skill, in any other skill, and in project docs that tell you to run `fusebase`:
 
    ```
    FUSEBASE_CONFIG_DIR="<dir>/config" PATH="<dir>/bin:$PATH" "<dir>/bin/fusebase" <command>
    ```
+
+If step a or b fails with `403 from proxy`, Cowork is blocking FuseBase. Tell the user: "Allow `thefusebase.com`, `public-api.thefusebase.com` and `app.nimbusweb.me` on the claude.ai website, not in the desktop app: Settings > Capabilities, or Organization settings > Capabilities on Team and Enterprise plans." Once they confirm, run the failed step again.
 
 
 ### Windows
