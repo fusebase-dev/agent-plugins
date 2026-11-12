@@ -8,10 +8,11 @@ description: Use when the fusebase CLI is missing, out of date, or not logged in
 
 Work through these steps in order and tell the user what you are doing as you go.
 
-First check where your shell runs:
+First decide which case you are in. Check them in this order and take the first that matches:
 
-- **Claude Cowork**: `CLAUDE_CODE_ENTRYPOINT` is `remote_cowork`, or `$HOME` matches `/sessions/rcw-*`. In step 1, use the Claude Cowork section instead of macOS and Linux.
-- **Cloud session**, such as Claude Code on the web: `CLAUDE_CODE_REMOTE` is `true`. Do not install. Every session there starts on a new machine, so the CLI and its login are lost each time. Tell the user the FuseBase CLI works only on their own computer, in Claude Code or in Cowork with a folder connected, and stop.
+1. **Claude Cowork**: `CLAUDE_CODE_ENTRYPOINT` is `remote_cowork`, or `$HOME` matches `/sessions/rcw-*`. In step 1, follow the Claude Cowork section instead of macOS and Linux.
+2. **Cloud session**, such as Claude Code on the web: `CLAUDE_CODE_REMOTE` is `true`. Do not install anything. Tell the user: "The FuseBase CLI is not available in cloud sessions, because every session starts on a new machine and loses the CLI and its login. Use Claude Code on your computer, or Cowork with your project folder connected." Then stop.
+3. Otherwise you are on the user's own computer. Follow step 1 for their OS.
 
 Run the installer as given. If it fails, stop and report what it printed. Do not download the binary yourself or place it by hand: the installer owns where the CLI lives and how it updates, and working around it hides the failure and leaves a binary `fusebase update` will not replace.
 
@@ -33,11 +34,18 @@ If `$HOME/.local/bin` was not already on `PATH`, `fusebase` will not resolve unt
 
 ### Claude Cowork
 
-Cowork can give you two shells: your own `Bash`, and `device_bash`, which runs commands in a Linux VM on the user's computer. If `$HOME` in your `Bash` matches `/sessions/rcw-*`, your `Bash` is that VM; use it. Otherwise your `Bash` is a cloud VM that starts empty every session: never install there, and run every command in this skill, and every `fusebase` command after it, through `device_bash`. `device_bash` exists only when a folder is connected to the chat. If it is missing, tell the user to connect the folder they work in, and stop.
+Cowork has two machines:
 
-Every Cowork chat gets a new, empty home in that VM, so a CLI installed there is lost and costs about 100 MB of shared disk each time. Keep the CLI and its login in the connected folder you are working in (it is under `$HOME/mnt/`), with `<dir>` as the absolute path of `<that folder>/.fusebase`. Never install into `/tmp` or `/var/tmp`.
+- **Cloud VM**: a machine in the cloud. It is new and empty in every chat. Never install or run `fusebase` there.
+- **Local VM**: a Linux VM on the user's computer. The folders the user connected to the chat are under `$HOME/mnt/`. Install and run `fusebase` only here.
 
-If a download fails with `403 from proxy`, Cowork is blocking FuseBase. Tell the user to allow `thefusebase.com`, `public-api.thefusebase.com` and `app.nimbusweb.me` on the claude.ai website, not in the desktop app: Settings > Capabilities, or Organization settings > Capabilities on Team and Enterprise plans. Then try again.
+Pick the shell that runs in the local VM. Use it for every command in this skill, steps 2 and 3 included, and for every `fusebase` command for the rest of the session:
+
+1. Run `echo $HOME` in your `Bash` tool. If it prints `/sessions/rcw-<id>`, your `Bash` runs in the local VM. Use `Bash`.
+2. Otherwise your `Bash` runs in the cloud VM. Use the `mcp__remote-devices__device_bash` tool instead. Never use `Bash` for this work.
+3. If you have no `mcp__remote-devices__device_bash` tool, no folder is connected to the chat. Tell the user: "Connect your project folder to this chat, then ask again." Then stop.
+
+Pick `<dir>`: the absolute path of `.fusebase` inside the connected folder you work in, for example `/sessions/rcw-abc/mnt/my-app/.fusebase`. If several folders are connected and the user has not said which one is the project, ask. Never put the CLI in `$HOME` itself, `/tmp` or `/var/tmp`: every chat gets a new home, so a CLI there is lost and costs about 100 MB of shared disk each time.
 
 a. If `<dir>/bin/fusebase` exists, do not download anything. Run `update` with the prefix from step c, then go to step c.
 
@@ -47,7 +55,9 @@ b. Otherwise install it:
    curl -sSL https://thefusebase.com/fusebase-cli/install-fusebase.sh | FUSEBASE_AGENT=1 FUSEBASE_INSTALL_DIR="<dir>/bin" FUSEBASE_CONFIG_DIR="<dir>/config" sh
    ```
 
-   If the working folder has a `.gitignore` without a `.fusebase/` line, add one.
+   If the connected folder has a `.gitignore` without a `.fusebase/` line, add one.
+
+   If the download fails with `403 from proxy`, Cowork is blocking FuseBase. Tell the user: "Allow `thefusebase.com`, `public-api.thefusebase.com` and `app.nimbusweb.me` on the claude.ai website, not in the desktop app: Settings > Capabilities, or Organization settings > Capabilities on Team and Enterprise plans." Run the installer again once they confirm.
 
 c. Shell variables do not survive between your commands. For the rest of the session, write this full prefix on every `fusebase` command: in this skill, in any other skill, and in project docs that tell you to run `fusebase`:
 
