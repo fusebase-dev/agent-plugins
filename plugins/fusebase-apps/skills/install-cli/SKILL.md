@@ -45,14 +45,9 @@ Pick the shell that runs in the local VM. Use it for every command in this skill
 2. Otherwise your `Bash` runs in the cloud VM. Use the `mcp__remote-devices__device_bash` tool instead. Never use `Bash` for this work.
 3. If you have no `mcp__remote-devices__device_bash` tool, no folder is connected to the chat. Tell the user: "Connect your project folder to this chat, then ask again." Then stop.
 
-Pick the project folder among the connected folders under `$HOME/mnt/`, in this order:
+The working folder is the connected folder under `$HOME/mnt/` that this chat works in. The shell's `PWD` is the chat's home, not the working folder. Do not search other connected folders, and do not ask the user which folder to use. Every working folder gets its own `.fusebase`, even if that duplicates the CLI across folders.
 
-1. The folder the user named as the project.
-2. The only connected folder that has `fusebase.json`.
-3. The only connected folder.
-4. Otherwise ask the user which connected folder is the project.
-
-`<dir>` is the absolute path of `.fusebase` inside the project folder, for example `/sessions/rcw-abc/mnt/my-app/.fusebase`. Never put the CLI in `$HOME` itself, `/tmp` or `/var/tmp`: every chat gets a new home, so a CLI there is lost and costs about 100 MB of shared disk each time.
+`<dir>` is the absolute path of `.fusebase` inside the working folder, for example `/sessions/rcw-abc/mnt/my-app/.fusebase`. Never put the CLI in `$HOME` itself, `/tmp` or `/var/tmp`: every chat gets a new home, so a CLI there is lost and costs about 100 MB of shared disk each time.
 
 a. If `<dir>/bin/fusebase` exists, do not download anything. Run `update` with the prefix from step c, then go to step c.
 
@@ -62,7 +57,7 @@ b. Otherwise install it:
    curl -sSL https://thefusebase.com/fusebase-cli/install-fusebase.sh | FUSEBASE_AGENT=1 FUSEBASE_INSTALL_DIR="<dir>/bin" FUSEBASE_CONFIG_DIR="<dir>/config" sh
    ```
 
-   If the project folder has a `.gitignore` without a `.fusebase/` line, add one.
+   If the working folder has a `.gitignore` without a `.fusebase/` line, add one.
 
 c. Shell variables do not survive between your commands. For the rest of the session, write this full prefix on every `fusebase` command: in this skill, in any other skill, and in project docs that tell you to run `fusebase`:
 
