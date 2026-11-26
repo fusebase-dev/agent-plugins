@@ -83,16 +83,20 @@ Three skills, one MCP server and one safety hook. No agents, and nothing written
 Installing the plugin installs nothing else. The CLI and the login happen the first time you
 actually ask for an app.
 
+Until you sign in to `fusebase-gate`, each session shows a warning about it, also outside FuseBase
+work: Claude Code shows "Needs authentication", Codex shows "MCP startup incomplete (failed:
+fusebase-gate)". Sign in once to stop the warning.
+
 ## Signing in to FuseBase Gate
 
-The `fusebase-gate` server asks you to sign in once. On the consent page you pick one
+You sign in to the `fusebase-gate` server once. On the consent page you pick one
 organisation: the agent then works only in that organisation. Pick the organisation of the app you
 work on.
 
 - **Claude Code**: run `/mcp`, select `plugin:fusebase-apps:fusebase-gate`, then **Authenticate**.
   Until then the server shows "Needs authentication".
-- **Codex**: Codex asks you to sign in the first time the agent uses the server. You can also run
-  `codex mcp login fusebase-gate`.
+- **Codex**: Codex shows that `fusebase-gate` is not logged in. Run `codex mcp login fusebase-gate`
+  in a terminal, then start Codex again.
 
 To change the organisation, sign in again: in Claude Code select the server in `/mcp` and clear the
 authentication, in Codex run `codex mcp logout fusebase-gate` and then `codex mcp login fusebase-gate`.

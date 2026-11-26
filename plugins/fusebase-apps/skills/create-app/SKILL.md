@@ -54,7 +54,7 @@ has no `fusebase orgs list` command, and this skill needs it.
 5. Stop here and hand back to the user. Tell them to:
     - Restart the agent, in the project directory if you could not move there
     - Approve the FuseBase MCP servers if prompted
-    - Sign in to the FuseBase Gate server and select the organisation of the new app on the consent page. Claude Code: run `/mcp`, select `plugin:fusebase-apps:fusebase-gate`, then Authenticate. Codex: accept the sign-in request on first use, or run `codex mcp login fusebase-gate`
+    - Sign in to the FuseBase Gate server and select the organisation of the new app on the consent page. Claude Code: run `/mcp`, select `plugin:fusebase-apps:fusebase-gate`, then Authenticate. Codex shows that `fusebase-gate` is not logged in: run `codex mcp login fusebase-gate` in a terminal, then start Codex again
     - Ask you to continue once it is back
     - Provide link to the guide about agent restart `https://ai-dev.thefusebase.com/full-product-restart?agent=AGENT`, instead of AGENT put either `claude-code` or `codex`.
 
