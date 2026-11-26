@@ -154,7 +154,8 @@ function decide(event) {
   }
 
   const parts = toolName.split("__");
-  const server = parts[1] || "fusebase";
+  // The plugin server is `mcp__plugin_fusebase-apps_fusebase-gate__<tool>` in Claude Code.
+  const server = (parts[1] || "fusebase").replace(/^plugin_fusebase-apps_/, "");
   const opId = input.opId || parts[parts.length - 1] || "operation";
   emit(
     "ask",

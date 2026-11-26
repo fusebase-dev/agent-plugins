@@ -63,7 +63,7 @@ active.
 
 ## What the plugin contributes
 
-Three skills and one safety hook. No agents, no MCP server, and nothing written to your
+Three skills, one MCP server and one safety hook. No agents, and nothing written to your
 `CLAUDE.md` or `AGENTS.md`.
 
 | Skill | What it does |
@@ -72,12 +72,33 @@ Three skills and one safety hook. No agents, no MCP server, and nothing written 
 | `existing-fusebase-app` | Updates the CLI and the project's own agent instructions when you open an app that already exists. |
 | `install-cli` | Installs, updates and authenticates the FuseBase CLI. Loads only when the CLI is missing or out of date. |
 
+| MCP server | What it does |
+| --- | --- |
+| `fusebase-gate` | FuseBase Gate at `https://gate-mcp.thefusebase.com/mcp`. Lets the agent read and change your FuseBase data (organisations, apps, data stores, files) as you, in the organisation you pick when you sign in. No token is stored in the plugin. |
+
 | Hook | What it does |
 | --- | --- |
 | `confirm-dangerous` | Claude Code only. Holds a FuseBase MCP call that confirms an irreversible operation until you approve it. |
 
 Installing the plugin installs nothing else. The CLI and the login happen the first time you
 actually ask for an app.
+
+## Signing in to FuseBase Gate
+
+The `fusebase-gate` server asks you to sign in once. On the consent page you pick one
+organisation: the agent then works only in that organisation. Pick the organisation of the app you
+work on.
+
+- **Claude Code**: run `/mcp`, select `plugin:fusebase-apps:fusebase-gate`, then **Authenticate**.
+  Until then the server shows "Needs authentication".
+- **Codex**: Codex asks you to sign in the first time the agent uses the server. You can also run
+  `codex mcp login fusebase-gate`.
+
+To change the organisation, sign in again: in Claude Code select the server in `/mcp` and clear the
+authentication, in Codex run `codex mcp logout fusebase-gate` and then `codex mcp login fusebase-gate`.
+
+Inside an app folder made by `fusebase init`, the CLI no longer adds its own Gate server when this
+plugin gives it. An app that uses another FuseBase environment keeps the CLI server.
 
 ## The confirmation hook
 

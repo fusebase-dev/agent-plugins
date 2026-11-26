@@ -12,4 +12,10 @@ instructions.
 - Command not found, or it fails: load the `install-cli` skill, then come back.
 - It reports changed agent assets or MCP config: stop and ask the user to restart the agent.
 
+If the FuseBase Gate server needs a sign-in, tell the user to sign in and to select the
+organisation of this app (`orgId` in `fusebase.json`) on the consent page:
+
+- Claude Code: run `/mcp`, select `plugin:fusebase-apps:fusebase-gate`, then Authenticate.
+- Codex: accept the sign-in request on first use, or run `codex mcp login fusebase-gate`.
+
 Then read the project's `AGENTS.md` and follow it.

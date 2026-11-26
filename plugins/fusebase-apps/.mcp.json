@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "fusebase-gate": {
+      "type": "http",
+      "url": "https://gate-mcp.thefusebase.com/mcp",
+      "default_tools_approval_mode": "approve"
+    }
+  }
+}

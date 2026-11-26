@@ -36,6 +36,27 @@ assert.doesNotMatch(asked.permissionDecisionReason, /confirm=/);
 // A per-op tool carries confirm at the top level.
 assert.strictEqual(run(perOpCall({ databaseId: "d1", confirm: true }), CLAUDE).permissionDecision, "ask");
 
+// The plugin's own Gate server: Claude Code adds the plugin prefix, the prompt does not show it.
+const pluginCall = run({ ...toolCall({ fileId: "f1", confirm: true }), tool_name: "mcp__plugin_fusebase-apps_fusebase-gate__tool_call" }, CLAUDE);
+assert.strictEqual(pluginCall.permissionDecision, "ask");
+assert.match(pluginCall.permissionDecisionReason, /^Approval required by the FuseBase plugin\. fusebase-gate: deleteFile/);
+
+// The hooks.json matcher takes both names of the FuseBase servers and nothing else.
+const { hooks } = JSON.parse(fs.readFileSync(join(__dirname, "hooks.json"), "utf8"));
+for (const [event, entries] of Object.entries(hooks)) {
+  const matcher = new RegExp(entries[0].matcher);
+  for (const name of [
+    "mcp__fusebase-gate__tool_call",
+    "mcp__fusebase-dashboards__deleteDatabase",
+    "mcp__plugin_fusebase-apps_fusebase-gate__tool_call",
+  ]) {
+    assert.ok(matcher.test(name), `${event} must match ${name}`);
+  }
+  for (const name of ["mcp__plugin_other_fusebase-gate__tool_call", "mcp__other__tool_call", "Bash"]) {
+    assert.ok(!matcher.test(name), `${event} must not match ${name}`);
+  }
+}
+
 // Anything not confirmed is silent: reads, previews, confirm omitted or not exactly true.
 assert.strictEqual(run(toolCall({ fileId: "f1" }), CLAUDE), null);
 assert.strictEqual(run(toolCall({ fileId: "f1", confirm: "true" }), CLAUDE), null);

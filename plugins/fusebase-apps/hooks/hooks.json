@@ -3,7 +3,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "mcp__fusebase-(gate|dashboards)__",
+        "matcher": "mcp__(plugin_fusebase-apps_)?fusebase-(gate|dashboards)__",
         "hooks": [
           {
             "type": "command",
@@ -15,7 +15,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "mcp__fusebase-(gate|dashboards)__",
+        "matcher": "mcp__(plugin_fusebase-apps_)?fusebase-(gate|dashboards)__",
         "hooks": [
           {
             "type": "command",
@@ -27,7 +27,7 @@
     ],
     "PostToolUseFailure": [
       {
-        "matcher": "mcp__fusebase-(gate|dashboards)__",
+        "matcher": "mcp__(plugin_fusebase-apps_)?fusebase-(gate|dashboards)__",
         "hooks": [
           {
             "type": "command",

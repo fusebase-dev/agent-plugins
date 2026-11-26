@@ -29,6 +29,7 @@ plugins/fusebase-apps/
     create-app/SKILL.md         # when and how to create a FuseBase app
     existing-fusebase-app/SKILL.md  # update the CLI before working in an existing app
     install-cli/SKILL.md        # install, update and authenticate the CLI
+  .mcp.json                     # fusebase-gate MCP server with OAuth, both hosts
   hooks/
     hooks.json                  # PreToolUse entry; Claude Code reads this path
     confirm-dangerous.js        # holds a confirmed irreversible MCP call for the human
@@ -72,9 +73,23 @@ Without `CLAUDE_PLUGIN_DATA`, or when that state cannot be read or written, the 
 A malformed payload exits silently too, because a hook that throws must not be able to block a
 tool call.
 
-The matcher assumes the standard MCP tool names, `mcp__fusebase-gate__*` and
-`mcp__fusebase-dashboards__*`, which is what `fusebase init` writes. A host configured to expose MCP
-tools under unprefixed names would not match.
+The matcher assumes the standard MCP tool names: `mcp__fusebase-gate__*` and
+`mcp__fusebase-dashboards__*`, which is what `fusebase init` writes, and
+`mcp__plugin_fusebase-apps_fusebase-gate__*`, the name Claude Code gives the plugin's own Gate server.
+The prompt drops the `plugin_fusebase-apps_` prefix, so it says `fusebase-gate` for both. A host
+configured to expose MCP tools under unprefixed names would not match.
+
+## The Gate MCP server
+
+`plugins/fusebase-apps/.mcp.json` gives `fusebase-gate` with OAuth: no headers and no token. Claude
+Code reads the file at the plugin root; the Codex manifest points to it with `mcpServers`.
+`default_tools_approval_mode: "approve"` is for Codex: without it, Codex refuses every plugin tool
+call under `approval_policy = "never"`. The CLI sets the same mode on its own servers. Claude Code
+ignores the field.
+
+`fusebase init` and `fusebase update` do not write their token Gate server for Claude Code and Codex
+when this plugin is enabled and its Gate URL equals the URL of the app. So keep the URL the prod
+Gate URL; a change of the URL brings the CLI server back in every app folder.
 
 Run `node plugins/fusebase-apps/hooks/confirm-dangerous.test.js` after touching either file.
 
